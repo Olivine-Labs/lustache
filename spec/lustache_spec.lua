@@ -43,6 +43,6 @@ end
 
 function Tests()
   for i,v in pairs(assertions) do
-    assert_equal(v.expected, lustache(v.input, testData, v.partials))
+    assert_equal(v.expected, lustache.render(v.input, testData, v.partials))
   end
 end
