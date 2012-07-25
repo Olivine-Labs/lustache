@@ -81,8 +81,9 @@ function Scanner(string)
       local match = self.tail:match(pattern)
 
       if match then
-        self.tail = self.tail.substring(#match + 1)
-        self.pos = #match
+        self.tail = self.tail:sub(#match + 1)
+        self.pos = self.pos + #match
+        print("Pos :"..self.pos..", tail: "..self.tail..", match: "..match)
         return match
       end
 
@@ -445,7 +446,7 @@ parse = function(template, tags)
       scanner:scan_until(tags[1])
     elseif type == "{" then
       local close_pattern = "%s*}"..tags[2]
-      value = scanner:scan_nutil(patterns.close_pattern)
+      value = scanner:scan_until(close_pattern)
       scanner:scan(patterns.curly)
       scanner:scan_until(tag_patterns[2])
     else
@@ -453,7 +454,7 @@ parse = function(template, tags)
     end
 
     if not scanner:scan(tag_patterns[1]) then
-      error("Unclosed tag at " + scanner.pos)
+      error("Unclosed tag at " .. scanner.pos)
     end
 
     table.insert(tokens, { type = type, value = value })
