@@ -80,15 +80,13 @@ function Scanner(string)
     scan = function(self, pattern)
       local match = self.tail:match(pattern)
 
+      print('--')
       print("tail: "..self.tail)
       print("pattern: "..pattern)
 
       if match then
         print("match "..match)
-        print("find "..self.tail:find(pattern))
       end
-
-      print('--')
 
       if match and self.tail:find(pattern) == 1 then
         self.tail = self.tail:sub(#match + 1)
@@ -119,7 +117,7 @@ function Scanner(string)
       end
 
       if match then
-        print("match:"..match)
+        print("s_u match: "..match)
       end
 
       return match
@@ -466,7 +464,7 @@ parse = function(template, tags)
       value = scanner:scan_until(tag_patterns[2])
     end
 
-    if not scanner:scan(tag_patterns[1]) then
+    if not scanner:scan(tag_patterns[2]) then
       error("Unclosed tag at " .. scanner.pos)
     end
 

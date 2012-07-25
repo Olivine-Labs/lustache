@@ -94,21 +94,20 @@ function Tests()
   local x = 1
 
   for i,v in pairs(expectations) do
-    --print("Test "..x..": "..i)
     parsed = lustache.parse(i)
 
-    --print("---Parsed---")
+    print("---Got---")
 
     for i,v in ipairs(parsed) do
-      --print(i)
-      --print(v)
+      print(i)
+      print(v)
     end
 
-    --print("---Expected---")
+    print("---Expected---")
 
     for i,v in ipairs(v) do
-      --print(i)
-      --print(v)
+      print(i)
+      print(v)
     end
 
     --print("---Assertion---")
