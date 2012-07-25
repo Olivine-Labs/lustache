@@ -80,14 +80,6 @@ function Scanner(string)
     scan = function(self, pattern)
       local match = self.tail:match(pattern)
 
-      print('--')
-      print("tail: "..self.tail)
-      print("pattern: "..pattern)
-
-      if match then
-        print("match "..match)
-      end
-
       if match and self.tail:find(pattern) == 1 then
         self.tail = self.tail:sub(#match + 1)
         self.pos = self.pos + #match
@@ -114,10 +106,6 @@ function Scanner(string)
         match = self.tail:sub(1, pos - 1)
         self.tail = self.tail:sub(pos)
         self.pos = self.pos + (pos)
-      end
-
-      if match then
-        print("s_u match: "..match)
       end
 
       return match
