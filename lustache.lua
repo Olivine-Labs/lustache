@@ -80,10 +80,19 @@ function Scanner(string)
     scan = function(self, pattern)
       local match = self.tail:match(pattern)
 
+      print("tail: "..self.tail)
+      print("pattern: "..pattern)
+
       if match then
+        print("match "..match)
+        print("find "..self.tail:find(pattern))
+      end
+
+      print('--')
+
+      if match and self.tail:find(pattern) == 1 then
         self.tail = self.tail:sub(#match + 1)
         self.pos = self.pos + #match
-        print("Pos :"..self.pos..", tail: "..self.tail..", match: "..match)
         return match
       end
 
@@ -104,9 +113,13 @@ function Scanner(string)
       elseif pos == 1 then
         match = nil
       else
-        match = self.tail:sub(1, pos)
-        self.tail = self.tail:sub(pos + 1)
-        self.pos = self.pos + (pos + 1)
+        match = self.tail:sub(1, pos - 1)
+        self.tail = self.tail:sub(pos)
+        self.pos = self.pos + (pos)
+      end
+
+      if match then
+        print("match:"..match)
       end
 
       return match
