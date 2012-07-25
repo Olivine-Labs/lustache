@@ -325,13 +325,13 @@ nest_tokens = function(tokens)
   local sections = {}
   local token, section
 
-  for i,t in ipairs(tokens) do
-    if t.type == "#" or t.type == "^" then
+  for i,token in ipairs(tokens) do
+    if token.type == "#" or token.type == "^" then
       token.tokens = {}
       table.insert(sections, token)
       table.insert(collector, token)
       collector = token.tokens
-    elseif t.type == "/" then
+    elseif token.type == "/" then
       if #section == 0 then
         error("Unopened section: "..token.value)
       end
