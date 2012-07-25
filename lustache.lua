@@ -5,7 +5,7 @@
 -- Utility functions.
 
 --TODO: kill dangerous unicode https://github.com/janl/mustache.js/blob/master/mustache.js#L66
-local patterns = {
+patterns = {
   white = "%s*",
   space = "%s+",
   nonSpace = "^%s",
@@ -14,7 +14,7 @@ local patterns = {
   tag = "[#\^/>{&=!]"
 }
 
-local html_escape_characters = {
+html_escape_characters = {
   ["&"] = "&amp;",
   ["<"] = "&lt;",
   [">"] = "&gt;",
@@ -23,19 +23,19 @@ local html_escape_characters = {
   ["/"] = "&#x2F"
 }
 
-local test_pattern = function(string, pattern)
+test_pattern = function(string, pattern)
   return string:find(pattern) and true or false
 end
 
-local is_whitespace = function(string)
+is_whitespace = function(string)
   return test_pattern(string, patterns.space)
 end
 
-local is_positive_integer = function(n)
+is_positive_integer = function(n)
   return type(n) == "number" and n > 0 and math.floor(n) == n
 end
 
-local is_array = function(array)
+is_array = function(array)
   local max, n = 0, 0
   for k, _ in pairs(array) do
     if not is_positive_integer(k) then return false end
@@ -45,16 +45,16 @@ local is_array = function(array)
   return n == max
 end
 
-local quote = function(string)
+quote = function(string)
   return '"'..string..'"'
 end
 
-local escape_html = function(string)
+escape_html = function(string)
   return string:gsub("[&<>\"\'/]", function(string) return html_escape_characters[string] end)
 end
 
 
-local split = function(string, sep)
+split = function(string, sep)
   local sep, fields = sep or ".", {}
   local pattern = string.format("([^%s]+)", sep)
   string:gsub(pattern, function(c) fields[#fields+1] = c end)
@@ -64,7 +64,7 @@ end
 
 -- The Parsing™
 
-local scanner = function(string)
+function Scanner(string)
   return {
     string = string,
     tail = string,
@@ -103,8 +103,8 @@ local scanner = function(string)
       elseif pos == 1 then
         match = nil
       else
-        match = this.tail:sub(1, pos)
-        self.tail = self.tail:substring(pos + 1)
+        match = self.tail:sub(1, pos)
+        self.tail = self.tail:sub(pos + 1)
         self.pos = self.pos + (pos + 1)
       end
 
@@ -113,22 +113,19 @@ local scanner = function(string)
   }
 end
 
-local context = function(view, parent)
+function Context(view, parent)
   return {
     view = view,
     parent = parent,
     _cache = {},
-
-    make = function(view)
-      return view["_cache"] and view or context(view)
-    end,
+    _magic = "1235123123", --ohgodwhy
 
     clear_cache = function(self)
       self._cache = {}
     end,
 
     push = function(self, view)
-      return context(view, self)
+      return Context(view, self)
     end,
 
     lookup = function(self, name)
@@ -171,7 +168,11 @@ local context = function(view, parent)
   }
 end
 
-local renderer = function()
+make_context = function(view)
+  return view["_magic"] == "1235123123" and view or Context(view)
+end
+
+function Renderer()
   return {
     _cache = {},
 
@@ -188,7 +189,7 @@ local renderer = function()
       local this = self
 
       return function(view)
-        return fn(context.make(view), self)
+        return fn(make_context(view), self)
       end
     end,
 
@@ -215,7 +216,7 @@ local renderer = function()
         if is_array(value) then
           local buffer = ""
 
-          for i in value do
+          for i,v in ipairs(value) do
             buffer = buffer + callback(context:push(i), self)
           end
 
@@ -287,11 +288,11 @@ end
 -- `returnBody` is true.
 -- ohgodwhy
 
-local compile_tokens = function(tokens, return_body)
+compile_tokens = function(tokens, return_body)
   local body = {'""'}
   local token, method, escape
 
-  for t in tokens do
+  for i,t in ipairs(tokens) do
     if t.type == "#" or t.type == "^" then
       method = token.type == "#" and "_section" or "_inverted"
       table.insert(body,
@@ -311,21 +312,20 @@ local compile_tokens = function(tokens, return_body)
   return loadstring(body)
 end
 
--- TODO escapeTags
-local escape_tags = function(tags)
+escape_tags = function(tags)
   return {
     tags[1].."%s*",
     "%s*"..tags[2],
   }
 end
 
-local nest_tokens = function(tokens)
+nest_tokens = function(tokens)
   local tree = {}
   local collector = tree
   local sections = {}
   local token, section
 
-  for t in tokens do
+  for i,t in ipairs(tokens) do
     if t.type == "#" or t.type == "^" then
       token.tokens = {}
       table.insert(sections, token)
@@ -364,11 +364,11 @@ end
 
 -- Combines the values of consecutive text tokens in the given `tokens` array
 -- to a single token.
-local squash_tokens = function(tokens)
+squash_tokens = function(tokens)
   local last_token
   local i = 0
 
-  for t in tokens do
+  for i,t in ipairs(tokens) do
     i = i + 1
     if last_token and last_token.type == "text" and token.type == "text" then
       last_token.value = last_token.value + token.value
@@ -383,10 +383,10 @@ end
 -- `tags` is given here it must be an array with two string values: the
 -- opening and closing tags used in the template (e.g. ["<%", "%>"]). Of
 -- course, the default is to use mustaches (i.e. Mustache.tags).
-local parse = function(template, tags)
+parse = function(template, tags)
   tags = tags or lustache.tags
   local tag_patterns = escape_tags(tags)
-  local scan = scanner(template)
+  local scanner = Scanner(template)
   local tokens = {} -- token buffer
   local spaces = {} -- indices of whitespace tokens on the current line
   local has_tag = false -- is there a {{tag} on the current line?
@@ -410,7 +410,7 @@ local parse = function(template, tags)
   local type, value, chr
 
   while not scanner:eos() do
-    value = scanner:scanUntil(tag_patterns[1])
+    value = scanner:scan_until(tag_patterns[1])
 
     if value then
       for i = 1, #value do
@@ -473,23 +473,23 @@ local parse = function(template, tags)
   return nest_tokens(tokens)
 end
 
-local _renderer = renderer()
+_renderer = Renderer()
 
-local clear_cache = function()
+clear_cache = function()
   _renderer:clear_cache()
 end
 
-local compile = function(tokens, tags)
+compile = function(tokens, tags)
   return _renderer:compile(tokens, tags)
 end
 
-local compile_partial = function(name, tokens, tags)
+compile_partial = function(name, tokens, tags)
   return _renderer:compile_partial(name, tokens, tags)
 end
 
-local render = function(template, view, partials)
+render = function(template, view, partials)
   if partials then
-    for n in partials do
+    for i,n in pairs(partials) do
       compile_partial(name, partials[name])
     end
   end
@@ -499,7 +499,7 @@ end
 
 -- Export module.
 
-local lustache = {
+lustache = {
   name = "lustache",
   version = "0.0.1-dev",
   tags = {"{{", "}}"},
