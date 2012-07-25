@@ -311,6 +311,192 @@ local compile_tokens = function(tokens, return_body)
   return loadstring(body)
 end
 
+-- TODO escapeTags
+local escape_tags = function(tags)
+  return {
+    tags[1].."%s*",
+    "%s*"..tags[2],
+  }
+end
+
+local nest_tokens = function(tokens)
+  local tree = {}
+  local collector = tree
+  local sections = {}
+  local token, section
+
+  for t in tokens do
+    if t.type == "#" or t.type == "^" then
+      token.tokens = {}
+      table.insert(sections, token)
+      table.insert(collector, token)
+      collector = token.tokens
+    elseif t.type == "/" then
+      if #section == 0 then
+        error("Unopened section: "..token.value)
+      end
+
+      -- Make sure there are no open sections when we're done
+      section = sections[#sections]
+      table.remove(sections, #sections)
+
+      if not section.value == token.value then
+        error("Unclosed section: "..section.value)
+      end
+
+      if #sections > 0 then
+        collector = sections[sections.length].tokens
+      else
+        collector = tree
+      end
+    else
+      table.insert(collector, token)
+    end
+  end
+
+  if section then
+    error("Unclosed section: "..section.value)
+  end
+
+  return tree
+end
+
+
+-- Combines the values of consecutive text tokens in the given `tokens` array
+-- to a single token.
+local squash_tokens = function(tokens)
+  local last_token
+  local i = 0
+
+  for t in tokens do
+    i = i + 1
+    if last_token and last_token.type == "text" and token.type == "text" then
+      last_token.value = last_token.value + token.value
+      table.remove(tokens, i)
+    else
+      last_token = token
+    end
+  end
+end
+
+-- Breaks up the given `template` string into a tree of token objects. If
+-- `tags` is given here it must be an array with two string values: the
+-- opening and closing tags used in the template (e.g. ["<%", "%>"]). Of
+-- course, the default is to use mustaches (i.e. Mustache.tags).
+local parse = function(template, tags)
+  tags = tags or lustache.tags
+  local tag_patterns = escape_tags(tags)
+  local scan = scanner(template)
+  local tokens = {} -- token buffer
+  local spaces = {} -- indices of whitespace tokens on the current line
+  local has_tag = false -- is there a {{tag} on the current line?
+  local non_space = false -- is there a non-space char on the current line?
+
+  -- Strips all whitespace tokens array for the current line if there was
+  -- a {{#tag}} on it and otherwise only space
+
+  local strip_space = function()
+    if has_tag and not non_space then
+      while #spaces do
+        space = spaces[#spaces]
+        table.remove(tokens, space)
+      end
+    else
+      has_tag = false
+      non_space = false
+    end
+  end
+
+  local type, value, chr
+
+  while not scanner:eos() do
+    value = scanner:scanUntil(tag_patterns[1])
+
+    if value then
+      for i = 1, #value do
+        chr = value:sub(i,i)
+
+        if is_whitespace(chr) then
+          table.insert(spaces, #tokens)
+        else
+          non_space = true
+        end
+
+        table.insert(tokens, { type = "text", value = chr })
+
+        if chr == "\n" then
+          strip_space()
+        end
+      end
+    end
+
+    if not scanner:scan(tag_patterns[1]) then
+      break
+    end
+
+    has_tag = true
+    type = scanner:scan(patterns.tag) or "name"
+
+    scanner:scan(patterns.white)
+
+    if type == "=" then
+      value = scanner:scan_until(patterns.eq)
+      scanner:scan(patterns.eq)
+      scanner:scan_until(tags[1])
+    elseif type == "{" then
+      local close_pattern = "%s*}"..tags[2]
+      value = scanner:scan_nutil(patterns.close_pattern)
+      scanner:scan(patterns.curly)
+      scanner:scan_until(tag_patterns[2])
+    else
+      value = scanner:scan_until(tag_patterns[2])
+    end
+
+    if not scanner:scan(tag_patterns[1]) then
+      error("Unclosed tag at " + scanner.pos)
+    end
+
+    table.insert(tokens, { type = type, value = value })
+
+    if type == "name" or type == "{" or type == "&" then
+      non_space = true
+    end
+
+    if type == "=" then
+      tags = split(value, patterns.space)
+      tag_pattern = escape_tags(tags)
+    end
+  end
+
+  squash_tokens(tokens)
+
+  return nest_tokens(tokens)
+end
+
+local _renderer = renderer()
+
+local clear_cache = function()
+  _renderer:clear_cache()
+end
+
+local compile = function(tokens, tags)
+  return _renderer:compile(tokens, tags)
+end
+
+local compile_partial = function(name, tokens, tags)
+  return _renderer:compile_partial(name, tokens, tags)
+end
+
+local render = function(template, view, partials)
+  if partials then
+    for n in partials do
+      compile_partial(name, partials[name])
+    end
+  end
+
+  return _renderer:render(template, view)
+end
+
 -- Export module.
 
 local lustache = {
