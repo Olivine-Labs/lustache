@@ -1,3 +1,6 @@
+--TODO: remove
+local cjson = require "cjson"
+
 -- lustache: Lua mustache template parsing.
 -- Copyright 2012 Olivine Labs, LLC <projects@olivinelabs.com>
 -- MIT Licensed.
@@ -8,7 +11,7 @@
 patterns = {
   white = "%s*",
   space = "%s+",
-  nonSpace = "^%s",
+  nonSpace = "%S",
   eq = "%s*=",
   curly = "%s*}",
   tag = "[#\^/>{&=!]"
@@ -53,14 +56,12 @@ escape_html = function(string)
   return string:gsub("[&<>\"\'/]", function(string) return html_escape_characters[string] end)
 end
 
-
 split = function(string, sep)
   local sep, fields = sep or ".", {}
   local pattern = string.format("([^%s]+)", sep)
   string:gsub(pattern, function(c) fields[#fields+1] = c end)
   return fields
 end
-
 
 -- The Parsing™
 
@@ -105,7 +106,7 @@ function Scanner(string)
       else
         match = self.tail:sub(1, pos - 1)
         self.tail = self.tail:sub(pos)
-        self.pos = self.pos + (pos)
+        self.pos = self.pos + pos
       end
 
       return match
@@ -169,7 +170,7 @@ function Context(view, parent)
 end
 
 make_context = function(view)
-  return view["_magic"] == "1235123123" and view or Context(view)
+  return view._magic and view._magic == "1235123123" and view or Context(view)
 end
 
 function Renderer()
@@ -332,13 +333,12 @@ nest_tokens = function(tokens)
       table.insert(collector, token)
       collector = token.tokens
     elseif token.type == "/" then
-      if #section == 0 then
+      if #sections == 0 then
         error("Unopened section: "..token.value)
       end
 
       -- Make sure there are no open sections when we're done
-      section = sections[#sections]
-      table.remove(sections, #sections)
+      section = table.remove(sections, #sections)
 
       if not section.value == token.value then
         error("Unclosed section: "..section.value)
@@ -354,6 +354,8 @@ nest_tokens = function(tokens)
     end
   end
 
+  section = table.remove(sections, #sections)
+
   if section then
     error("Unclosed section: "..section.value)
   end
@@ -365,18 +367,27 @@ end
 -- Combines the values of consecutive text tokens in the given `tokens` array
 -- to a single token.
 squash_tokens = function(tokens)
-  local last_token
-  local i = 0
+  local last_token, token
+  local i = #tokens
 
-  for i,t in ipairs(tokens) do
-    i = i + 1
-    if last_token and last_token.type == "text" and token.type == "text" then
-      last_token.value = last_token.value + token.value
+  while i > 0 do
+    token = tokens[i]
+    last_token = nil
+
+    if i > 1 then
+      last_token = tokens[i-1]
+    end
+
+    if last_token and last_token.type == "text" and token and token.type == "text" then
+      last_token.value = last_token.value..token.value
       table.remove(tokens, i)
     else
       last_token = token
     end
+
+    i = i-1
   end
+
 end
 
 -- Breaks up the given `template` string into a tree of token objects. If
@@ -397,13 +408,13 @@ parse = function(template, tags)
 
   local strip_space = function()
     if has_tag and not non_space then
-      while #spaces do
-        space = spaces[#spaces]
-        table.remove(tokens, space)
+      local i = #spaces
+
+      while i > 0 do
+        i = i - 1
+        position = table.remove(spaces, #spaces)
+        table.remove(tokens, position)
       end
-    else
-      has_tag = false
-      non_space = false
     end
   end
 
@@ -424,7 +435,7 @@ parse = function(template, tags)
 
         table.insert(tokens, { type = "text", value = chr })
 
-        if chr == "\n" then
+        if chr:find("\n") then
           strip_space()
         end
       end
