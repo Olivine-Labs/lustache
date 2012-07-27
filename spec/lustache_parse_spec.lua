@@ -37,6 +37,7 @@ equalTables = (function(traverse, equalTables)
 end)()
 
 expectations = {
+  --[[
   { template = "{{hi}}", value                                  = { { type= "name", value= "hi" } }},
   { template = "{{hi.world}}", value                            = { { type= "name", value= "hi.world" } }},
   { template = "{{hi . world}}", value                          = { { type= "name", value= "hi . world" } }},
@@ -67,21 +68,23 @@ expectations = {
   { template = "a\n {{#a}}\n{{/a}}\nb", value                   = { { type= "text", value= "a\n " }, { type= "#", value= "a", tokens= { { value = "\n", type = "text" } } }, { type= "text", value= "\nb" } }},
   { template = "a\n {{#a}}\n{{/a}} \nb", value                  = { { type= "text", value= "a\n " }, { type= "#", value= "a", tokens= { { value = "\n", type = "text" } } }, { type= "text", value= " \nb" } }},
   { template = "a\n{{#a}}\n{{/a}}\n{{#b}}\n{{/b}}\nb", value    = { { type= "text", value= "a\n" }, { type= "#", value= "a", tokens= { { value = "\n", type = "text" } } }, { value = "\n",type = "text"}, { type= "#", value= "b", tokens= {{ value = "\n",type = "text"}} }, { type= "text", value= "\nb" } }},
-  { template = "a\n {{#a}}\n{{/a}}\n{{#b}}\n{{/b}}\nb", value   = { { type= "text", value= "a\n " }, { type= "#", value= "a", tokens= { { value = "\n", type = "text" } } }, { type= "#", value= "b", tokens= { { value = "\n", type = "text" } } }, { type= "text", value= "\nb" } }},
-  { template = "a\n {{#a}}\n{{/a}}\n{{#b}}\n{{/b}} \nb", value  = { { type= "text", value= "a\n " }, { type= "#", value= "a", tokens= { { value = "\n", type = "text" } } }, { type= "#", value= "b", tokens= { { value = "\n", type = "text" } } }, { type= "text", value= "\nb" } }},
-  { template = "a\n{{#a}}\n{{#b}}\n{{/b}}\n{{/a}}\nb", value    = { { type= "text", value= "a\n" }, { type= "#", value= "a", tokens= { { type= "#", value= "b", tokens= { { value = "\n", type = "text" } } } } }, { type= "text", value= "b" } }},
-  { template = "a\n {{#a}}\n{{#b}}\n{{/b}}\n{{/a}}\nb", value   = { { type= "text", value= "a\n " }, { type= "#", value= "a", tokens= { { type= "#", value= "b", tokens= { { value = "\n", type = "text" } } } } }, { type= "text", value= "b" } }},
-  { template = "a\n {{#a}}\n{{#b}}\n{{/b}}\n{{/a}} \nb", value  = { { type= "text", value= "a\n " }, { type= "#", value= "a", tokens= { { type= "#", value= "b", tokens= { { value = "\n", type = "text" } } } } }, { type= "text", value= "b" } }},
+  { template = "a\n {{#a}}\n{{/a}}\n{{#b}}\n{{/b}}\nb", value   = { { type= "text", value= "a\n " }, { type= "#", value= "a", tokens= { { value = "\n", type = "text" } } }, { value = "\n", type = "text" }, { type= "#", value= "b", tokens= { { value = "\n", type = "text" } } }, { type= "text", value= "\nb" } }},
+  { template = "a\n {{#a}}\n{{/a}}\n{{#b}}\n{{/b}} \nb", value  = { { type= "text", value= "a\n " }, { type= "#", value= "a", tokens= { { value = "\n", type = "text" } } }, { value = "\n", type = "text" },{ type= "#", value= "b", tokens= { { value = "\n", type = "text" } } }, { type= "text", value= " \nb" } }},
+  { template = "a\n{{#a}}\n{{#b}}\n{{/b}}\n{{/a}}\nb", value    = { { type= "text", value= "a\n" }, { type= "#", value= "a", tokens= { { type= "text", value= "\n" }, { type= "#", value= "b", tokens= { { value = "\n", type = "text" } } }, { type= "text", value= "\n" } } }, { type= "text", value= "\nb" } }},
+  { template = "a\n {{#a}}{{#b}}\n{{/b}}{{/a}}b", value   = { { type= "text", value= "a\n " }, { type= "#", value= "a", tokens= { { type= "#", value= "b", tokens= { { value = "\n", type = "text" } } } } }, { type= "text", value= "b" } }},
+  { template = "a\n {{#a}}{{#b}}\n{{/b}}{{/a}} \nb", value  = { { type= "text", value= "a\n " }, { type= "#", value= "a", tokens= { { type= "#", value= "b", tokens= { { value = "\n", type = "text" } } } } }, { type= "text", value= " \nb" } }},
   { template = "{{>abc}}", value                                = { { type= ">", value= "abc" } }},
   { template = "{{> abc }}", value                              = { { type= ">", value= "abc" } }},
-  { template = "{{ > abc }}", value                             = { { type= ">", value= "abc" } }},
+  --]]
   { template = "{{=<% %>=}}", value                             = { { type= "=", value= "<% %>" } }},
+  --[[
   { template = "{{= <% %> =}}", value                           = { { type= "=", value= "<% %>" } }},
   { template = "{{=<% %>=}}<%={{ }}=%>", value                  = { { type= "=", value= "<% %>" }, { type= "=", value= "{{ }}" } }},
   { template = "{{=<% %>=}}<%hi%>", value                       = { { type= "=", value= "<% %>" }, { type= "name", value= "hi" } }},
   { template = "{{#a}}{{/a}}hi{{#b}}{{/b}}\n", value            = { { type= "#", value= "a", tokens= {} }, { type= "text", value= "hi" }, { type= "#", value= "b", tokens= {} }, { type= "text", value= "\n" } }},
   { template = "{{a}}\n{{b}}\n\n{{#c}}\n{{/c}}\n", value        = { { type= "name", value= "a" }, { type= "text", value= "\n" }, { type= "name", value= "b" }, { type= "text", value= "\n\n" }, { type= "#", value= "c", tokens= {} } }},
   { template = "{{#foo}}\n  {{#a}}\n    {{b}}\n  {{/a}}\n{{/foo}}\n", value = { { type = "#", value = "foo", tokens = { { type = "#", value = "a", tokens = { { type = "text", value = "    " }, { type = "name", value = "b" }, { type = "text", value = "\n" } } } } } }}
+  --]]
 }
 
 function setup()

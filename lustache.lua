@@ -80,10 +80,18 @@ function Scanner(string)
     -- Returns the matched text if it can match, `null` otherwise.
     scan = function(self, pattern)
       local match = self.tail:match(pattern)
+        print(pattern)
+        print(self.tail)
+        print(self.pos)
 
       if match and self.tail:find(pattern) == 1 then
         self.tail = self.tail:sub(#match + 1)
         self.pos = self.pos + #match
+
+        print(self.tail)
+        print(self.pos)
+        print('---')
+
         return match
       end
 
@@ -345,7 +353,7 @@ nest_tokens = function(tokens)
       end
 
       if #sections > 0 then
-        collector = sections[sections.length].tokens
+        collector = sections[#sections].tokens
       else
         collector = tree
       end
