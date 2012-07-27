@@ -75,11 +75,11 @@ expectations = {
   { template = "a\n {{#a}}{{#b}}\n{{/b}}{{/a}} \nb", value  = { { type= "text", value= "a\n " }, { type= "#", value= "a", tokens= { { type= "#", value= "b", tokens= { { value = "\n", type = "text" } } } } }, { type= "text", value= " \nb" } }},
   { template = "{{>abc}}", value                                = { { type= ">", value= "abc" } }},
   { template = "{{> abc }}", value                              = { { type= ">", value= "abc" } }},
-  --]]
   { template = "{{=<% %>=}}", value                             = { { type= "=", value= "<% %>" } }},
-  --[[
   { template = "{{= <% %> =}}", value                           = { { type= "=", value= "<% %>" } }},
+  --]]
   { template = "{{=<% %>=}}<%={{ }}=%>", value                  = { { type= "=", value= "<% %>" }, { type= "=", value= "{{ }}" } }},
+  --[[
   { template = "{{=<% %>=}}<%hi%>", value                       = { { type= "=", value= "<% %>" }, { type= "name", value= "hi" } }},
   { template = "{{#a}}{{/a}}hi{{#b}}{{/b}}\n", value            = { { type= "#", value= "a", tokens= {} }, { type= "text", value= "hi" }, { type= "#", value= "b", tokens= {} }, { type= "text", value= "\n" } }},
   { template = "{{a}}\n{{b}}\n\n{{#c}}\n{{/c}}\n", value        = { { type= "name", value= "a" }, { type= "text", value= "\n" }, { type= "name", value= "b" }, { type= "text", value= "\n\n" }, { type= "#", value= "c", tokens= {} } }},

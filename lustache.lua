@@ -80,17 +80,10 @@ function Scanner(string)
     -- Returns the matched text if it can match, `null` otherwise.
     scan = function(self, pattern)
       local match = self.tail:match(pattern)
-        print(pattern)
-        print(self.tail)
-        print(self.pos)
 
       if match and self.tail:find(pattern) == 1 then
         self.tail = self.tail:sub(#match + 1)
         self.pos = self.pos + #match
-
-        print(self.tail)
-        print(self.pos)
-        print('---')
 
         return match
       end
@@ -461,7 +454,7 @@ parse = function(template, tags)
     if type == "=" then
       value = scanner:scan_until(patterns.eq)
       scanner:scan(patterns.eq)
-      scanner:scan_until(tags[1])
+      scanner:scan_until(tags[2])
     elseif type == "{" then
       local close_pattern = "%s*}"..tags[2]
       value = scanner:scan_until(close_pattern)
