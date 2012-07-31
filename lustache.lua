@@ -316,8 +316,8 @@ end
 
 escape_tags = function(tags)
   return {
-    tags[1].."%s*",
-    "%s*"..tags[2],
+    tags[1]:gsub("%%", "%%%%").."%s*",
+    "%s*"..tags[2]:gsub("%%", "%%%%"),
   }
 end
 
@@ -476,7 +476,7 @@ parse = function(template, tags)
 
     if type == "=" then
       tags = split(value, patterns.space)
-      tag_pattern = escape_tags(tags)
+      tag_patterns = escape_tags(tags)
     end
   end
 
