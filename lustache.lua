@@ -407,18 +407,6 @@ parse = function(template, tags)
   -- Strips all whitespace tokens array for the current line if there was
   -- a {{#tag}} on it and otherwise only space
 
-  local strip_space = function()
-    if has_tag and not non_space then
-      local i = #spaces
-
-      while i > 0 do
-        i = i - 1
-        position = table.remove(spaces, #spaces)
-        table.remove(tokens, position)
-      end
-    end
-  end
-
   local type, value, chr
 
   while not scanner:eos() do
@@ -435,10 +423,6 @@ parse = function(template, tags)
         end
 
         table.insert(tokens, { type = "text", value = chr })
-
-        if chr:find("\n") then
-          strip_space()
-        end
       end
     end
 
@@ -454,7 +438,7 @@ parse = function(template, tags)
     if type == "=" then
       value = scanner:scan_until(patterns.eq)
       scanner:scan(patterns.eq)
-      scanner:scan_until(tags[2])
+      scanner:scan_until(tag_patterns[2])
     elseif type == "{" then
       local close_pattern = "%s*}"..tags[2]
       value = scanner:scan_until(close_pattern)
@@ -479,6 +463,7 @@ parse = function(template, tags)
       tag_patterns = escape_tags(tags)
     end
   end
+
 
   squash_tokens(tokens)
 
