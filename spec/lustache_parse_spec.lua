@@ -37,7 +37,6 @@ equalTables = (function(traverse, equalTables)
 end)()
 
 expectations = {
-  --[[
   { template = "{{hi}}", value                                  = { { type= "name", value= "hi" } }},
   { template = "{{hi.world}}", value                            = { { type= "name", value= "hi.world" } }},
   { template = "{{hi . world}}", value                          = { { type= "name", value= "hi . world" } }},
@@ -80,11 +79,8 @@ expectations = {
   { template = "{{=<% %>=}}<%={{ }}=%>", value                  = { { type= "=", value= "<% %>" }, { type= "=", value= "{{ }}" } }},
   { template = "{{=<% %>=}}<%hi%>", value                       = { { type= "=", value= "<% %>" }, { type= "name", value= "hi" } }},
   { template = "{{#a}}{{/a}}hi{{#b}}{{/b}}\n", value            = { { type= "#", value= "a", tokens= {} }, { type= "text", value= "hi" }, { type= "#", value= "b", tokens= {} }, { type= "text", value= "\n" } }},
-  --]]
   { template = "{{a}}\n{{b}}\n\n{{#c}}\n{{/c}}\n", value        = { { type= "name", value= "a" }, { type= "text", value= "\n" }, { type= "name", value= "b" }, { type= "text", value= "\n\n" }, { type= "#", value= "c", tokens= {} } }},
-  --[[
   { template = "{{#foo}}\n  {{#a}}\n    {{b}}\n  {{/a}}\n{{/foo}}\n", value = { { type = "#", value = "foo", tokens = { { type = "#", value = "a", tokens = { { type = "text", value = "    " }, { type = "name", value = "b" }, { type = "text", value = "\n" } } } } } }}
-  --]]
 }
 
 function setup()
