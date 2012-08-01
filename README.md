@@ -365,3 +365,7 @@ lustache began as a direct port of [Jan Lehnardt](https://github.com/janl)'s
 excellent [mustache.js](https://github.com/janl/mustache.js). It would be
 significantly further behind without the available code from the many
 contributors. <3
+
+## License
+
+MIT licensed. View LICENSE file for more details.

@@ -523,7 +523,7 @@ end
 
 lustache = {
   name = "lustache",
-  version = "0.0.1-dev",
+  version = "1.0-1",
   tags = {"{{", "}}"},
 
   Context = Context,
