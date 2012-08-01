@@ -1,7 +1,7 @@
 package = "lustache"
 version = "1.0-1"
 source = {
-  url = "https://github.com/Olivine-Labs/lustache/zipball/master"
+  url = "https://github.com/Olivine-Labs/lustache/zipball/v1.0-1"
 }
 description = {
   summary = "{{Mustache}} rendering for Lua",
