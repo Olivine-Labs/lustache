@@ -241,7 +241,7 @@ function Renderer()
           return this:render(template, context)
         end
 
-        return value(context.view, section_text, scoped_render) or ""
+        return value(section_text, scoped_render) or ""
       else
         if value then
           return callback(context, self)

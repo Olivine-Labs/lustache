@@ -114,3 +114,17 @@ function RenderPartialsInContextTest()
   partials = { message_template = "{{ message }}" }
   assert_equal(expectation, lustache.render(template, data, partials))
 end
+
+function RenderFunctionsTest()
+  template = "{{ message }} Jack!"
+  expectation = "Yo Jack!"
+  data = { message = function() return "Yo" end }
+  assert_equal(expectation, lustache.render(template, data, partials))
+end
+
+function RenderFunctionsWithArgsTest()
+  template = "{{# message }}H{{/ message }} Jack!"
+  expectation = "Hi Jack!"
+  data = { message = function(text, render) return render(text).."i" end }
+  assert_equal(expectation, lustache.render(template, data, partials))
+end
