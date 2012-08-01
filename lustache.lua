@@ -1,5 +1,4 @@
---TODO: remove
-local cjson = require "cjson"
+require("cjson")
 
 -- lustache: Lua mustache template parsing.
 -- Copyright 2012 Olivine Labs, LLC <projects@olivinelabs.com>
@@ -116,7 +115,7 @@ function Scanner(string)
 end
 
 function Context(view, parent)
-  return {
+  local context = {
     view = view,
     parent = parent,
     _cache = {},
@@ -154,7 +153,7 @@ function Context(view, parent)
               value = context.view[name]
             end
 
-            if not value == nil then
+            if value then
               break
             end
 
@@ -168,6 +167,10 @@ function Context(view, parent)
       return value
     end
   }
+
+  context:clear_cache()
+
+  return context
 end
 
 make_context = function(view)
@@ -501,11 +504,13 @@ lustache = {
   version = "0.0.1-dev",
   tags = {"{{", "}}"},
 
+  Context = Context,
+
   parse = parse,
   clear_cache = clear_cache,
   compile = compile,
   compile_partial = compile_partial,
-  render = render,
+  render = render
 }
 
 return lustache

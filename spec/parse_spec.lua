@@ -3,7 +3,6 @@ package.path = './../?.lua;'..package.path
 lustache = require 'lustache'
 
 require "lunit"
-cjson = require "cjson"
 
 module("lustache_testcase", lunit.testcase, package.seeall)
 
@@ -94,11 +93,6 @@ function Tests()
 
   for i,v in ipairs(expectations) do
     local parsed = lustache.parse(v.template)
-    if not equalTables(parsed, v.value) then
-      print(cjson.encode(parsed))
-      print(cjson.encode(v.value))
-    end
-
     assert(equalTables(parsed, v.value))
   end
 end
