@@ -128,3 +128,16 @@ function RenderFunctionsWithArgsTest()
   data = { message = function(text, render) return render(text).."i" end }
   assert_equal(expectation, lustache.render(template, data, partials))
 end
+
+function RenderCommentsTest()
+  template = "{{! comment }}Hi"
+  expectation = "Hi"
+  assert_equal(expectation, lustache.render(template, data, partials))
+end
+
+function ChangeDelimiterTest()
+  template = "{{=| |=}}|text|"
+  data = { text = "Hi" }
+  expectation = "Hi"
+  assert_equal(expectation, lustache.render(template, data, partials))
+end
