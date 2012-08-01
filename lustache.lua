@@ -226,7 +226,7 @@ function Renderer()
           local buffer = ""
 
           for i,v in ipairs(value) do
-            buffer = buffer .. callback(context:push(i), self)
+            buffer = buffer .. callback(context:push(v), self)
           end
 
           return buffer
@@ -241,7 +241,7 @@ function Renderer()
           return this:render(template, context)
         end
 
-        return value(section_text, scoped_render) or ""
+        return value(this, section_text, scoped_render) or ""
       else
         if value then
           return callback(context, self)
@@ -441,6 +441,10 @@ parse = function(template, tags)
           table.insert(spaces, #tokens)
         else
           non_space = true
+        end
+
+        if chr == "\n" then
+          chr = "\\n"
         end
 
         table.insert(tokens, { type = "text", value = chr })

@@ -3,7 +3,6 @@ package.path = './../?.lua;'..package.path
 lustache = require 'lustache'
 
 require "lunit"
-cjson = require "cjson"
 
 module("lustache_testcase", lunit.testcase, package.seeall)
 
@@ -125,7 +124,7 @@ end
 function RenderFunctionsWithArgsTest()
   template = "{{# message }}H{{/ message }} Jack!"
   expectation = "Hi Jack!"
-  data = { message = function(text, render) return render(text).."i" end }
+  data = { message = function(self, text, render) return render(text).."i" end }
   assert_equal(expectation, lustache.render(template, data, partials))
 end
 
@@ -139,5 +138,36 @@ function ChangeDelimiterTest()
   template = "{{=| |=}}|text|"
   data = { text = "Hi" }
   expectation = "Hi"
+  assert_equal(expectation, lustache.render(template, data, partials))
+end
+
+function ArrayOfTablesTest()
+  template = "{{#beatles}}{{name}} {{/beatles}}"
+  data = {
+    beatles = {
+      { name = "John Lennon" },
+      { name = "Paul McCartney" },
+      { name = "George Harrison" },
+      { name = "Ringo Starr" }
+    }
+  }
+  expectation = "John Lennon Paul McCartney George Harrison Ringo Starr "
+  assert_equal(expectation, lustache.render(template, data, partials))
+end
+
+function ArrayOfTablesFunctionTest()
+  template = "{{#beatles}}* {{name}}\n{{/beatles}}"
+  data = {
+    beatles = {
+      { first_name = "John", last_name = "Lennon" },
+      { first_name = "Paul", last_name = "McCartney" },
+      { first_name = "George", last_name = "Harrison" },
+      { first_name = "Ringo", last_name = "Starr" }
+    },
+    name = function (self)
+      return self.first_name .. " " .. self.last_name
+    end
+  }
+  expectation = "* John Lennon\n* Paul McCartney\n* George Harrison\n* Ringo Starr\n"
   assert_equal(expectation, lustache.render(template, data, partials))
 end

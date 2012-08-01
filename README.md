@@ -211,7 +211,7 @@ View:
         { first_name = "George", last_name = "Harrison" },
         { first_name = "Ringo", last_name = "Starr" }
       },
-      name = function ()
+      name = function (self)
         return self.first_name .. " " .. self.last_name
       end
     }
@@ -238,7 +238,7 @@ View:
 
     {
       name = "Tater",
-      bold = function ()
+      bold = function (self)
         return function (text, render) 
           return "<b>" .. render(text) .. "</b>"
         end

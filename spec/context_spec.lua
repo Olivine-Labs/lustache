@@ -3,7 +3,6 @@ package.path = './../?.lua;'..package.path
 lustache = require 'lustache'
 
 require "lunit"
-cjson = require "cjson"
 
 module("lustache_testcase", lunit.testcase, package.seeall)
 
