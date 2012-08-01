@@ -1,5 +1,3 @@
-require("cjson")
-
 -- lustache: Lua mustache template parsing.
 -- Copyright 2012 Olivine Labs, LLC <projects@olivinelabs.com>
 -- MIT Licensed.
@@ -145,6 +143,10 @@ function Context(view, parent)
 
               value = context.view
 
+              if(type(value)) == "number" then
+                value = tostring(value)
+              end
+
               while value and i < #names do
                 i = i + 1
                 value = value[names[i]]
@@ -178,11 +180,13 @@ make_context = function(view)
 end
 
 function Renderer()
-  return {
+  local renderer = {
     _cache = {},
+    _partial_cache = {},
 
     clear_cache = function(self)
       self._cache = {}
+      self._partial_cache = {}
     end,
 
     compile = function(self, tokens, tags)
@@ -194,7 +198,7 @@ function Renderer()
       local this = self
 
       return function(view)
-        return fn(make_context(view), self)
+        return fn(make_context(view), this)
       end
     end,
 
@@ -222,11 +226,13 @@ function Renderer()
           local buffer = ""
 
           for i,v in ipairs(value) do
-            buffer = buffer + callback(context:push(i), self)
+            buffer = buffer .. callback(context:push(i), self)
           end
 
           return buffer
         end
+
+        return callback(context:push(value), self)
       elseif type(value) == "function" then
         local section_text = callback(context, self)
         local this = self
@@ -277,6 +283,7 @@ function Renderer()
       end
 
       local string = value == nil and "" or value
+      string = tostring(string)
 
       if escape then
         return escape_html(string)
@@ -285,6 +292,10 @@ function Renderer()
       return string
     end
   }
+
+  renderer:clear_cache()
+
+  return renderer
 end
 
 -- Low-level function that compiles the given `tokens` into a
@@ -295,26 +306,33 @@ end
 
 compile_tokens = function(tokens, return_body)
   local body = {'""'}
-  local token, method, escape
+  local token, method, escape, fn
 
-  for i,t in ipairs(tokens) do
-    if t.type == "#" or t.type == "^" then
-      method = token.type == "#" and "_section" or "_inverted"
-      table.insert(body,
-        "r."..method.."("..quote(token.value)..", c, function(c,r)\n"..compile_tokens(token.tokens, true).."\nend)"
-      )
-    elseif t.type == "{" or t.type == "&" or t.type == "name" then
-      escape = token.type == "name" and "true" or "false"
-      table.insert(body, "r._name("..quote(token.value)..", c, "..escape..")")
-    elseif t.type == ">" then
-      table.insert(body, "r._partial("..quote(token.value)..", c)")
-    elseif t.type == "text" then
-      table.insert(body, quote(token.value))
+  if tokens then
+    for i,token in ipairs(tokens) do
+      if token.type == "#" or token.type == "^" then
+        method = token.type == "#" and "_section" or "_inverted"
+        table.insert(body,
+          "r:"..method.."("..quote(token.value)..", c, function(c,r)\n"..compile_tokens(token.tokens, true).."\nend)"
+        )
+      elseif token.type == "{" or token.type == "&" or token.type == "name" then
+        escape = token.type == "name" and "true" or "false"
+        table.insert(body, "r:_name("..quote(token.value)..", c, "..escape..")")
+      elseif token.type == ">" then
+        table.insert(body, "r:_partial("..quote(token.value)..", c)")
+      elseif token.type == "text" then
+        table.insert(body, quote(token.value))
+      end
     end
   end
 
-  body = "return "..table.concat(body, " + ")..";"
-  return loadstring(body)
+  if return_body then
+    return "return "..table.concat(body, " .. ")
+  else
+    body = "function f(c,r) return "..table.concat(body, " .. ").." end"
+    loadstring (body)()
+    return f
+  end
 end
 
 escape_tags = function(tags)
@@ -489,8 +507,8 @@ end
 
 render = function(template, view, partials)
   if partials then
-    for i,n in pairs(partials) do
-      compile_partial(name, partials[name])
+    for name, body in pairs(partials) do
+      compile_partial(name, body)
     end
   end
 
