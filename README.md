@@ -20,14 +20,18 @@ For a language-agnostic overview of mustache's template syntax, see the
 
 You can use lustache to render mustache templates anywhere you can use Lua.
 
-lustache exposes itself as a module, so you only have to require the file. It will
-be on luarocks soon.
+lustache exposes itself as a module, so you only have to require the file. and assign it.
 
 ## Usage
 
+### Installation
+
+Download lustache.lua and place it in your project, or install it with [luarocks](http://luarocks.org/en/Download)
+using `luarocks install lustache`.  On OSX, you can `brew install luarocks`.
+
 Below is quick example how to use lustache:
 
-    require "lustache"
+    lustache = require "lustache"
 
     view_model = {
       title = "Joe",
