@@ -1,0 +1,461 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Lustache by Olivine-Labs</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Lustache</h1>
+        <p>Mustache templates for Lua</p>
+
+        <p class="view"><a href="https://github.com/Olivine-Labs/lustache">View the Project on GitHub <small>Olivine-Labs/lustache</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/Olivine-Labs/lustache/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/Olivine-Labs/lustache/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/Olivine-Labs/lustache">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h1>lustache - Logic-less {{mustache}} templates with Lua</h1>
+
+<blockquote>
+<p>What could be more logical awesome than no logic at all?</p>
+</blockquote>
+
+<p><a href="http://github.com/Olivine-Labs/lustache">lustache</a> is an implementation of the
+<a href="http://mustache.github.com/">mustache</a> template system in Lua.</p>
+
+<p><a href="http://mustache.github.com/">Mustache</a> is a logic-less template syntax. It can
+be used for HTML, config files, source code - anything. It works by expanding
+tags in a template using values provided in a hash or object.</p>
+
+<p>We call it "logic-less" because there are no if statements, else clauses, or for
+loops. Instead there are only tags. Some tags are replaced with a value, some
+nothing, and others a series of values.</p>
+
+<p>For a language-agnostic overview of mustache's template syntax, see the
+<code>mustache(5)</code> <a href="http://mustache.github.com/mustache.5.html">manpage</a>.</p>
+
+<h2>Where to use lustache?</h2>
+
+<p>You can use lustache to render mustache templates anywhere you can use Lua.</p>
+
+<p>lustache exposes itself as a module, so you only have to require the file. and assign it.</p>
+
+<h2>Usage</h2>
+
+<h3>Installation</h3>
+
+<p>Download lustache.lua and place it in your project, or install it with <a href="http://luarocks.org/en/Download">luarocks</a>
+using <code>luarocks install lustache</code>.  On OSX, you can <code>brew install luarocks</code>.</p>
+
+<p>Below is quick example how to use lustache:</p>
+
+<pre><code>lustache = require "lustache"
+
+view_model = {
+  title = "Joe",
+  calc = function ()
+    return 2 + 4;
+  end
+}
+
+output = lustache.render("{{title}} spends {{calc}}", view)
+</code></pre>
+
+<p>In this example, the <code>lustache.render</code> function takes two parameters: 1) the
+<a href="http://mustache.github.com/">mustache</a> template and 2) a <code>view_model</code> object
+that contains the data and code needed to render the template.</p>
+
+<h2>Templates</h2>
+
+<p>A <a href="http://mustache.github.com/">mustache</a> template is a string that contains
+any number of mustache tags. Tags are indicated by the double mustaches that
+surround them. <code>{{person}}</code> is a tag, as is <code>{{#person}}</code>. In both examples we
+refer to <code>person</code> as the tag's key.</p>
+
+<p>There are several types of tags available in lustache.</p>
+
+<h3>Variables</h3>
+
+<p>The most basic tag type is a simple variable. A <code>{{name}}</code> tag renders the value
+of the <code>name</code> key in the current context. If there is no such key, nothing is
+rendered.</p>
+
+<p>All variables are HTML-escaped by default. If you want to render unescaped HTML,
+use the triple mustache: <code>{{{name}}}</code>. You can also use <code>&amp;</code> to unescape a
+variable.</p>
+
+<p>Template:</p>
+
+<pre><code>* {{name}}
+* {{age}}
+* {{company}}
+* {{{company}}}
+* {{&amp;company}}
+</code></pre>
+
+<p>View:</p>
+
+<pre><code>{
+  name = "Chris",
+  company = "&lt;b&gt;GitHub&lt;/b&gt;"
+}
+</code></pre>
+
+<p>Output:</p>
+
+<pre><code>* Chris
+*
+* &amp;lt;b&amp;gt;GitHub&amp;lt;/b&amp;gt;
+* &lt;b&gt;GitHub&lt;/b&gt;
+* &lt;b&gt;GitHub&lt;/b&gt;
+</code></pre>
+
+<p>Dot notation may be used to access keys that are properties of
+objects in a view.</p>
+
+<p>Template:</p>
+
+<pre><code>* {{name.first}} {{name.last}}
+* {{age}}
+</code></pre>
+
+<p>View:</p>
+
+<pre><code>{
+  name = {
+    first = "Michael",
+    last = "Jackson"
+  },
+  age = "RIP"
+}
+</code></pre>
+
+<p>Output:</p>
+
+<pre><code>* Michael Jackson
+* RIP
+</code></pre>
+
+<h3>Sections</h3>
+
+<p>Sections render blocks of text one or more times, depending on the value of the
+key in the current context.</p>
+
+<p>A section begins with a pound and ends with a slash. That is, <code>{{#person}}</code>
+begins a <code>person</code> section, while <code>{{/person}}</code> ends it. The text between the two
+tags is referred to as that section's "block".</p>
+
+<p>The behavior of the section is determined by the value of the key.</p>
+
+<h4>False Values or Empty Lists</h4>
+
+<p>If the <code>person</code> key exists and has a value of <code>null</code>, <code>undefined</code>, or <code>false</code>,
+or is an empty list, the block will not be rendered.</p>
+
+<p>Template:</p>
+
+<pre><code>Shown.
+{{#person}}
+Never shown!
+{{/person}}
+</code></pre>
+
+<p>View:</p>
+
+<pre><code>{
+  person = false
+}
+</code></pre>
+
+<p>Output:</p>
+
+<pre><code>Shown.
+</code></pre>
+
+<h4>Non-Empty Lists</h4>
+
+<p>If the <code>person</code> key exists and is not <code>null</code>, <code>undefined</code>, or <code>false</code>, and is
+not an empty list the block will be rendered one or more times.</p>
+
+<p>When the value is a list, the block is rendered once for each item in the list.
+The context of the block is set to the current item in the list for each
+iteration. In this way we can loop over collections.</p>
+
+<p>Template:</p>
+
+<pre><code>{{#stooges}}
+&lt;b&gt;{{name}}&lt;/b&gt;
+{{/stooges}}
+</code></pre>
+
+<p>View:</p>
+
+<pre><code>{
+  stooges = [
+    { name = "Moe" },
+    { name = "Larry" },
+    { name = "Curly" }
+  ]
+}
+</code></pre>
+
+<p>Output:</p>
+
+<pre><code>&lt;b&gt;Moe&lt;/b&gt;
+&lt;b&gt;Larry&lt;/b&gt;
+&lt;b&gt;Curly&lt;/b&gt;
+</code></pre>
+
+<p>When looping over an array of strings, a <code>.</code> can be used to refer to the current
+item in the list.</p>
+
+<p>Template:</p>
+
+<pre><code>{{#musketeers}}
+* {{.}}
+{{/musketeers}}
+</code></pre>
+
+<p>View:</p>
+
+<pre><code>{
+  musketeers = { "Athos", "Aramis", "Porthos", "D'Artagnan" }
+}
+</code></pre>
+
+<p>Output:</p>
+
+<pre><code>* Athos
+* Aramis
+* Porthos
+* D'Artagnan
+</code></pre>
+
+<p>If the value of a section variable is a function, it will be called in the
+context of the current item in the list on each iteration.</p>
+
+<p>Template:</p>
+
+<pre><code>{{#beatles}}
+* {{name}}
+{{/beatles}}
+</code></pre>
+
+<p>View:</p>
+
+<pre><code>{
+  beatles = {
+    { first_name = "John", last_name = "Lennon" },
+    { first_name = "Paul", last_name = "McCartney" },
+    { first_name = "George", last_name = "Harrison" },
+    { first_name = "Ringo", last_name = "Starr" }
+  },
+  name = function (self)
+    return self.first_name .. " " .. self.last_name
+  end
+}
+</code></pre>
+
+<p>Output:</p>
+
+<pre><code>* John Lennon
+* Paul McCartney
+* George Harrison
+* Ringo Starr
+</code></pre>
+
+<h4>Functions</h4>
+
+<p>If the value of a section key is a function, it is called with the section's
+literal block of text, un-rendered, as its first argument. The second argument
+is a special rendering function that uses the current view as its view argument.
+It is called in the context of the current view object.</p>
+
+<p>Template:</p>
+
+<pre><code>{{#bold}}Hi {{name}}.{{/bold}}
+</code></pre>
+
+<p>View:</p>
+
+<pre><code>{
+  name = "Tater",
+  bold = function (self)
+    return function (text, render) 
+      return "&lt;b&gt;" .. render(text) .. "&lt;/b&gt;"
+    end
+  end
+}
+</code></pre>
+
+<p>Output:</p>
+
+<pre><code>&lt;b&gt;Hi Tater.&lt;/b&gt;
+</code></pre>
+
+<h3>Inverted Sections</h3>
+
+<p>An inverted section opens with <code>{{^section}}</code> instead of <code>{{#section}}</code>. The
+block of an inverted section is rendered only if the value of that section's tag
+is <code>null</code>, <code>undefined</code>, <code>false</code>, or an empty list.</p>
+
+<p>Template:</p>
+
+<pre><code>{{#repos}}&lt;b&gt;{{name}}&lt;/b&gt;{{/repos}}
+{{^repos}}No repos :({{/repos}}
+</code></pre>
+
+<p>View:</p>
+
+<pre><code>{
+  "repos": {}
+}
+</code></pre>
+
+<p>Output:</p>
+
+<pre><code>No repos :(
+</code></pre>
+
+<h3>Comments</h3>
+
+<p>Comments begin with a bang and are ignored. The following template:</p>
+
+<pre><code>&lt;h1&gt;Today{{! ignore me }}.&lt;/h1&gt;
+</code></pre>
+
+<p>Will render as follows:</p>
+
+<pre><code>&lt;h1&gt;Today.&lt;/h1&gt;
+</code></pre>
+
+<p>Comments may contain newlines.</p>
+
+<h3>Partials</h3>
+
+<p>Partials begin with a greater than sign, like {{&gt; box}}.</p>
+
+<p>Partials are rendered at runtime (as opposed to compile time), so recursive
+partials are possible. Just avoid infinite loops.</p>
+
+<p>They also inherit the calling context. Whereas in ERB you may have this:</p>
+
+<pre><code>&lt;%= partial :next_more, :start =&gt; start, :size =&gt; size %&gt;
+</code></pre>
+
+<p>Mustache requires only this:</p>
+
+<pre><code>{{&gt; next_more}}
+</code></pre>
+
+<p>Why? Because the <code>next_more.mustache</code> file will inherit the <code>size</code> and <code>start</code>
+variables from the calling context. In this way you may want to think of
+partials as includes, or template expansion, even though it's not literally true.</p>
+
+<p>For example, this template and partial:</p>
+
+<pre><code>base.mustache:
+&lt;h2&gt;Names&lt;/h2&gt;
+{{#names}}
+  {{&gt; user}}
+{{/names}}
+
+user.mustache:
+&lt;strong&gt;{{name}}&lt;/strong&gt;
+</code></pre>
+
+<p>Can be thought of as a single, expanded template:</p>
+
+<pre><code>&lt;h2&gt;Names&lt;/h2&gt;
+{{#names}}
+  &lt;strong&gt;{{name}}&lt;/strong&gt;
+{{/names}}
+</code></pre>
+
+<p>In lustache an object of partials may be passed as the third argument to
+<code>lustache.render</code>. The object should be keyed by the name of the partial, and
+its value should be the partial text.</p>
+
+<h3>Set Delimiter</h3>
+
+<p>Set Delimiter tags start with an equals sign and change the tag delimiters from
+<code>{{</code> and <code>}}</code> to custom strings.</p>
+
+<p>Consider the following contrived example:</p>
+
+<pre><code>* {{ default_tags }}
+{{=&lt;% %&gt;=}}
+* &lt;% erb_style_tags %&gt;
+&lt;%={{ }}=%&gt;
+* {{ default_tags_again }}
+</code></pre>
+
+<p>Here we have a list with three items. The first item uses the default tag style,
+the second uses ERB style as defined by the Set Delimiter tag, and the third
+returns to the default style after yet another Set Delimiter declaration.</p>
+
+<p>According to <a href="http://google-ctemplate.googlecode.com/svn/trunk/doc/howto.html">ctemplates</a>,
+this "is useful for languages like TeX, where double-braces may occur in the
+text and are awkward to use for markup."</p>
+
+<p>Custom delimiters may not contain whitespace or the equals sign.</p>
+
+<h2>Testing</h2>
+
+<p>lustache uses the <a href="http://www.nessie.de/mroth/lunit/">lunit</a> testing
+framework. In order to run the tests you'll need to install lunit, which
+can be done through <a href="http://luarocks.org/">luarocks</a> or your choice of
+lua package manager.</p>
+
+<pre><code>$ luarocks install lunit
+</code></pre>
+
+<p>Then run the tests.</p>
+
+<pre><code>$ lunit spec/*
+</code></pre>
+
+<h2>Thanks</h2>
+
+<p>lustache began as a direct port of <a href="https://github.com/janl">Jan Lehnardt</a>'s 
+excellent <a href="https://github.com/janl/mustache.js">mustache.js</a>. It would be
+significantly further behind without the available code from the many
+contributors. &lt;3</p>
+
+<h2>License</h2>
+
+<p>MIT licensed. View LICENSE file for more details.</p>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/Olivine-Labs">Olivine-Labs</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+              <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-22050912-1");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+  </body>
+</html>
