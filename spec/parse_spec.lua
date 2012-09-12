@@ -79,7 +79,12 @@ expectations = {
   { template = "{{=<% %>=}}<%hi%>", value                       = { { type= "=", value= "<% %>" }, { type= "name", value= "hi" } }},
   { template = "{{#a}}{{/a}}hi{{#b}}{{/b}}\n", value            = { { type= "#", value= "a", tokens= {} }, { type= "text", value= "hi" }, { type= "#", value= "b", tokens= {} }, { type= "text", value= "\\n" } }},
   { template = "{{a}}\n{{b}}\n\n{{#c}}{{/c}}", value        = { { type= "name", value= "a" }, { type= "text", value= "\\n" }, { type= "name", value= "b" }, { type= "text", value= "\\n\\n" }, { type= "#", value= "c", tokens= {} } }},
-  { template = "{{#foo}}{{#a}}    {{b}}  {{/a}}{{/foo}}", value = { { type = "#", value = "foo", tokens = { { type = "#", value = "a", tokens = { { type = "text", value = "    " }, { type = "name", value = "b" }, { type = "text", value = "  " } } } } } }}
+  { template = "{{#foo}}{{#a}}    {{b}}  {{/a}}{{/foo}}", value = { { type = "#", value = "foo", tokens = { { type = "#", value = "a", tokens = { { type = "text", value = "    " }, { type = "name", value = "b" }, { type = "text", value = "  " } } } } } }},
+
+  { template = "a", value                                = { { type= "text", value= "a" } }},
+  { template = "\"", value                                = { { type= "text", value= "\"" } }},
+  { template = "\"a\"", value                                = { { type= "text", value= "\"a\"" } }},
+  { template = "\"{{a}}\"", value                                = { { type= "text", value= "\"" }, { type="name", value="a" }, { type="text", value="\""} }},
 }
 
 function setup()
