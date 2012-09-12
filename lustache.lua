@@ -45,8 +45,8 @@ is_array = function(array)
   return n == max
 end
 
-quote = function(string)
-  return '"'..string..'"'
+quote = function(str)
+  return '"'..string.gsub(str, "\"","\\\"")..'"'
 end
 
 escape_html = function(string)

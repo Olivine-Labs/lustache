@@ -28,6 +28,25 @@ function RenderTextTest()
   assert_equal(expectation, lustache.render(template, data, partials))
 end
 
+function RenderQuoteTest()
+  template = "\""
+  expectation = "\""
+  assert_equal(expectation, lustache.render(template, data, partials))
+end
+
+function RenderMixedQuoteTest()
+  template = "\"'\""
+  expectation = "\"'\""
+  assert_equal(expectation, lustache.render(template, data, partials))
+end
+
+function RenderQuotedDataTest()
+  template = "\"{{message}}\""
+  expectation = '"Hi"'
+  data = { message = "Hi" }
+  assert_equal(expectation, lustache.render(template, data, partials))
+end
+
 function RenderDataTest()
   template = "{{ message }}"
   expectation = "Hi"
