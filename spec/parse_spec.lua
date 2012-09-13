@@ -1,39 +1,4 @@
-package.path = './../?.lua;'..package.path
-
 lustache = require 'lustache'
-
-require "lunit"
-
-module("lustache_testcase", lunit.testcase, package.seeall)
-
--- define function prototypes
-equalTables = (function(traverse, equalTables)
-  -- traverse a table, and test equality to another
-  traverse = function(primary, secondary)
-    -- use pairs for both the hash, and array part of the table
-    for k,v in pairs(primary) do
-      -- value is a table (do a deep equality), and the secondary value
-      if not secondary or not secondary[k] then return false end
-      local tableState, secondVal = type(v) == 'table', secondary[k]
-      -- check for deep table inequality, or value inequality
-      if (tableState and not equalTables(v, secondVal)) or (not tableState and v ~= secondVal) then
-        return false
-      end
-    end
-    -- passed all tests, the tables are equal
-    return true
-  end
-
-  -- main equality function
-  equalTables = function(first, second)
-    -- traverse both first, and second tables to be sure of equality
-    return traverse(first, second) and traverse(second, first)
-  end
-
-  -- return main function to keep traverse private
-  return equalTables
-
-end)()
 
 expectations = {
   { template = "{{hi}}", value                                  = { { type= "name", value= "hi" } }},
@@ -82,17 +47,14 @@ expectations = {
   { template = "{{#foo}}{{#a}}    {{b}}  {{/a}}{{/foo}}", value = { { type = "#", value = "foo", tokens = { { type = "#", value = "a", tokens = { { type = "text", value = "    " }, { type = "name", value = "b" }, { type = "text", value = "  " } } } } } }}
 }
 
-function setup()
-end
-
-function teardown()
-end
-
-function Tests()
+describe("parsing", function()
   local x = 1
 
   for i,v in ipairs(expectations) do
-    local parsed = lustache.parse(v.template)
-    assert(equalTables(parsed, v.value))
+    it("Tests template #"..x, function()
+      local parsed = lustache.parse(v.template)
+      assert.same(parsed, v.value)
+    end)
+    x = x + 1
   end
-end
+end)

@@ -1,10 +1,4 @@
-package.path = './../?.lua;'..package.path
-
 lustache = require 'lustache'
-
-require "lunit"
-
-module("lustache_testcase", lunit.testcase, package.seeall)
 
 local topic = function()
   local view = { name = 'parent', message = 'hi', a = { b = 'b' } }
@@ -17,48 +11,43 @@ local push = function(context)
   return context:push(child_view), child_view
 end
 
-function setup()
-end
-
-function teardown()
-end
-
-function ContextLookupTest()
+describe("context specs", function()
   local context, view = topic()
-  assert_equal(context:lookup("name"), view.name)
-end
 
-function ContextLookupNestedTest()
-  local context, view = topic()
-  assert_equal(context:lookup("a.b"), view.a.b)
-end
+  before_each(function()
+    context, view = topic()
+  end)
 
-function ChildContextTest()
-  local context, view = topic()
-  local child_context, child_view = push(context)
-  assert_equal(child_context.view.name, child_view.name)
-end
+  it("looks up contexts", function()
+    assert.equal(context:lookup("name"), view.name)
+  end)
 
-function ChildContextViewPropertyTest()
-  local context, view = topic()
-  local child_context, child_view = push(context)
-  assert_equal(child_context:lookup("name"), child_view.name)
-end
+  it("looks up nested contexts", function()
+    assert.equal(context:lookup("a.b"), view.a.b)
+  end)
 
-function ChildContextParentViewPropertyTest()
-  local context, view = topic()
-  local child_context, child_view = push(context)
-  assert_equal(child_context:lookup("message"), view.message)
-end
+  it("looks up child contexts", function()
+    local child_context, child_view = push(context)
+    assert.equal(child_context.view.name, child_view.name)
+  end)
 
-function ChildContextNestedViewPropertyTest()
-  local context, view = topic()
-  local child_context, child_view = push(context)
-  assert_equal(child_context:lookup("c.d"), "d")
-end
+  it("looks up child context view properties", function()
+    local child_context, child_view = push(context)
+    assert.equal(child_context:lookup("name"), child_view.name)
+  end)
 
-function ChildContextParentNestedViewPropertyTest()
-  local context, view = topic()
-  local child_context, child_view = push(context)
-  assert_equal(child_context:lookup("a.b"), "b")
-end
+  it("looks up child context parent view properties", function()
+    local child_context, child_view = push(context)
+    assert.equal(child_context:lookup("message"), view.message)
+  end)
+
+  it("looks up child context nested view properties", function()
+    local child_context, child_view = push(context)
+    assert.equal(child_context:lookup("c.d"), "d")
+  end)
+
+  it("looks up child context parent nested view properties", function()
+    local child_context, child_view = push(context)
+    assert.equal(child_context:lookup("a.b"), "b")
+  end)
+end)

@@ -21,6 +21,6 @@ dependencies = {
 build = {
   type = "builtin",
    modules = {
-    lustache = "lustache.lua"
+    lustache = "src/lustache.lua"
   }
 }

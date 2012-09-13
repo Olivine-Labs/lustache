@@ -11,7 +11,7 @@ patterns = {
   nonSpace = "%S",
   eq = "%s*=",
   curly = "%s*}",
-  tag = "[#\^/>{&=!]"
+  tag = "[#\\^/>{&=!]"
 }
 
 html_escape_characters = {
@@ -176,6 +176,8 @@ function Context(view, parent)
 end
 
 make_context = function(view)
+  if not view then return view end
+
   return view._magic and view._magic == "1235123123" and view or Context(view)
 end
 
@@ -208,6 +210,10 @@ function Renderer()
     end,
 
     render = function(self, template, view)
+      if not template then
+        return ""
+      end
+
       local fn = self._cache[template]
 
       if not fn then
@@ -330,6 +336,7 @@ compile_tokens = function(tokens, return_body)
     return "return "..table.concat(body, " .. ")
   else
     body = "function f(c,r) return "..table.concat(body, " .. ").." end"
+    print(body)
     loadstring (body)()
     return f
   end
@@ -447,6 +454,9 @@ parse = function(template, tags)
           chr = "\\n"
         end
 
+        if chr == "\r" then
+          chr = "\\r"
+        end
         table.insert(tokens, { type = "text", value = chr })
       end
     end
