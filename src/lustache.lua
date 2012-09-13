@@ -45,12 +45,12 @@ is_array = function(array)
   return n == max
 end
 
-quote = function(string)
-  return '"'..string..'"'
+quote = function(str)
+  return '"'..string.gsub(str, "\"","\\\"")..'"'
 end
 
-escape_html = function(string)
-  return string:gsub("[&<>\"\'/]", function(string) return html_escape_characters[string] end)
+escape_html = function(str)
+  return str:gsub("[&<>\"\'/]", function(str) return html_escape_characters[str] end)
 end
 
 split = function(string, sep)
@@ -336,7 +336,6 @@ compile_tokens = function(tokens, return_body)
     return "return "..table.concat(body, " .. ")
   else
     body = "function f(c,r) return "..table.concat(body, " .. ").." end"
-    print(body)
     loadstring (body)()
     return f
   end
