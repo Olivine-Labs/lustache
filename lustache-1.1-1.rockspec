@@ -21,7 +21,10 @@ dependencies = {
 }
 build = {
   type = "builtin",
-   modules = {
-    lustache = "src/lustache.lua"
+  modules = {
+    lustache = "src/lustache.lua",
+    ["lustache.context"]  = "src/lustache/context.lua",
+    ["lustache.renderer"] = "src/lustache/renderer.lua",
+    ["lustache.scanner"]  = "src/lustache/scanner.lua"
   }
 }
