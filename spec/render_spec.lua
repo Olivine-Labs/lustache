@@ -1,4 +1,6 @@
-lustache = require 'lustache'
+package.path = "../?.lua"
+
+local lustache = require "lustache"
 
 describe("rendering", function()
   local template, data, partials, expectation
@@ -11,89 +13,89 @@ describe("rendering", function()
   end
 
   it("RenderNothingTest", function()
-    assert.equal(expectation, lustache.render(template, data, partials))
+    assert.equal(expectation, lustache:render(template, data, partials))
   end)
 
   it("RenderTextTest", function()
     template = "Hi"
     expectation = "Hi"
-    assert.equal(expectation, lustache.render(template, data, partials))
+    assert.equal(expectation, lustache:render(template, data, partials))
   end)
 
   it("Render whitespace", function()
     template = "\n"
     expectation = "\n"
-    assert.equal(expectation, lustache.render(template, data, partials))
+    assert.equal(expectation, lustache:render(template, data, partials))
   end)
 
   it("RenderDataTest", function()
     template = "{{ message }}"
     expectation = "Hi"
     data = { message = "Hi" }
-    assert.equal(expectation, lustache.render(template, data, partials))
+    assert.equal(expectation, lustache:render(template, data, partials))
   end)
 
   it("RenderDataAndTextTest", function()
     template = "{{ message }} Jack!"
     expectation = "Hi Jack!"
     data = { message = "Hi" }
-    assert.equal(expectation, lustache.render(template, data, partials))
+    assert.equal(expectation, lustache:render(template, data, partials))
   end)
 
   it("RenderDataAndTextTest", function()
     template = "{{ message }} Jack!"
     expectation = "Hi Jack!"
     data = { message = "Hi" }
-    assert.equal(expectation, lustache.render(template, data, partials))
+    assert.equal(expectation, lustache:render(template, data, partials))
   end)
 
   it("RenderNestedDataTest", function()
     template = "{{ message.words }} Jack!"
     expectation = "Hi Jack!"
     data = { message = { words = "Hi" } }
-    assert.equal(expectation, lustache.render(template, data, partials))
+    assert.equal(expectation, lustache:render(template, data, partials))
   end)
 
   it("RenderNestedDataSectionsTest", function()
     template = "{{# message }}{{ words }}{{/ message }} Jack!"
     expectation = "Hi Jack!"
     data = { message = { words = "Hi" } }
-    assert.equal(expectation, lustache.render(template, data, partials))
+    assert.equal(expectation, lustache:render(template, data, partials))
   end)
 
   it("RenderMoreNestedDataWithBooleanSectionsTest", function()
     template = "{{# message }}{{# words }}Yo{{/ words }}{{/ message }} Jack!"
     expectation = "Yo Jack!"
     data = { message = { words = "Yo" } }
-    assert.equal(expectation, lustache.render(template, data, partials))
+    assert.equal(expectation, lustache:render(template, data, partials))
   end)
 
   it("RenderNegatedSectionsTest", function()
     template = "{{# message }}{{^ words }}Yo{{/ words }}{{/ message }} Jack!"
     expectation = "Yo Jack!"
     data = { message = { 1 } }
-    assert.equal(expectation, lustache.render(template, data, partials))
+    assert.equal(expectation, lustache:render(template, data, partials))
   end)
 
   it("RenderArrayTest", function()
     template = "{{# message }}{{ . }}, {{/ message }}"
     expectation = "1, 2, 3, "
     data = { message = { 1, 2, 3 } }
-    assert.equal(expectation, lustache.render(template, data, partials))
+    assert.equal(expectation, lustache:render(template, data, partials))
   end)
 
   it("RenderEscapedHTMLTest", function()
     template = "{{message}}"
     expectation = "&lt;h1&gt;HI&lt;&#x2Fh1&gt;"
     data = { message = "<h1>HI</h1>" }
-    assert.equal(expectation, lustache.render(template, data, partials))
+    assert.equal(expectation, lustache:render(template, data, partials))
   end)
 
   it("RenderUnescapedHTMLTest", function()
     template = "{{{message}}}"
     expectation = "<h1>HI</h1>"
     data = { message = "<h1>HI</h1>" }
-    assert.equal(expectation, lustache.render(template, data, partials))
+    assert.equal(expectation, lustache:render(template, data, partials))
   end)
 
   it("RenderPartialsTest", function()
@@ -101,7 +103,7 @@ describe("rendering", function()
     expectation = "Message: Hi, Jack"
     data = { title = "Message: " }
     partials = { message_template = "Hi, Jack" }
-    assert.equal(expectation, lustache.render(template, data, partials))
+    assert.equal(expectation, lustache:render(template, data, partials))
   end)
 
   it("RenderPartialsInContextTest", function()
@@ -109,34 +111,34 @@ describe("rendering", function()
     expectation = "Message: Hi, Jack"
     data = { title = "Message: ", message = "Hi, Jack" }
     partials = { message_template = "{{ message }}" }
-    assert.equal(expectation, lustache.render(template, data, partials))
+    assert.equal(expectation, lustache:render(template, data, partials))
   end)
 
   it("RenderFunctionsTest", function()
     template = "{{ message }} Jack!"
     expectation = "Yo Jack!"
     data = { message = function() return "Yo" end }
-    assert.equal(expectation, lustache.render(template, data, partials))
+    assert.equal(expectation, lustache:render(template, data, partials))
   end)
 
   it("RenderFunctionsWithArgsTest", function()
     template = "{{# message }}H{{/ message }} Jack!"
     expectation = "Hi Jack!"
     data = { message = function(self, text, render) return render(text).."i" end }
-    assert.equal(expectation, lustache.render(template, data, partials))
+    assert.equal(expectation, lustache:render(template, data, partials))
   end)
 
   it("RenderCommentsTest", function()
     template = "{{! comment }}Hi"
     expectation = "Hi"
-    assert.equal(expectation, lustache.render(template, data, partials))
+    assert.equal(expectation, lustache:render(template, data, partials))
   end)
 
   it("ChangeDelimiterTest", function()
     template = "{{=| |=}}|text|"
     data = { text = "Hi" }
     expectation = "Hi"
-    assert.equal(expectation, lustache.render(template, data, partials))
+    assert.equal(expectation, lustache:render(template, data, partials))
   end)
 
   it("ArrayOfTablesTest", function()
@@ -150,7 +152,7 @@ describe("rendering", function()
       }
     }
     expectation = "John Lennon Paul McCartney George Harrison Ringo Starr "
-    assert.equal(expectation, lustache.render(template, data, partials))
+    assert.equal(expectation, lustache:render(template, data, partials))
   end)
 
   it("ArrayOfTablesFunctionTest", function()
@@ -167,6 +169,6 @@ describe("rendering", function()
       end
     }
     expectation = "* John Lennon\n* Paul McCartney\n* George Harrison\n* Ringo Starr\n"
-    assert.equal(expectation, lustache.render(template, data, partials))
+    assert.equal(expectation, lustache:render(template, data, partials))
   end)
 end)
