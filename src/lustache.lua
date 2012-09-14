@@ -24,34 +24,30 @@ end
 local lustache = {
   name     = "lustache",
   version  = "1.1-1",
-  tags     = {"{{", "}}"},
   renderer = require("lustache.renderer"):new(),
 }
 
-function lustache:clear_cache()
-  return self.renderer:clear_cache()
-end
-
-function lustache:compile(tokens, tags)
-  return self.renderer:compile(tokens, tags or self.tags)
-end
-
-function lustache:compile_partial(name, tokens, tags)
-  return self.renderer:compile_partial(name, tokens, tags or self.tags)
-end
-
 function lustache:render(template, view, partials)
+  --> seems like this should be done by renderer.render?
   if partials then
     for name, body in pairs(partials) do
       self:compile_partial(name, body)
     end
   end
 
-  return self.renderer:render(template, view, self.tags)
+  return self.renderer:render(template, view)
 end
 
-function lustache:parse(template, tags)
-  return self.renderer:parse(template, tags or self.tags)
-end
-
-return lustache
+--> setmetatable returns the table, so this saves a line
+return setmetatable(lustache, {
+  --> expose renderer's functions
+  __index = function(self, idx)
+    if self.renderer[idx] then return self.renderer[idx] end
+  end,
+  --> allow setting renderer.tags with lustache.tags
+  __newindex = function(self, idx, val)
+    if idx == "tags" then self.renderer.tags = val end
+    --> use this to expose everything in renderer (probably not desirable):
+    -- if self.renderer[idx] then self.renderer[idx] = val end
+  end
+})

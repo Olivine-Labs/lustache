@@ -171,11 +171,12 @@ end
 local renderer = {}
 
 function renderer:clear_cache()
-  self._cache = {}
-  self._partial_cache = {}
+  self.cache = {}
+  self.partial_cache = {}
 end
 
 function renderer:compile(tokens, tags)
+  tags = tags or self.tags
   if type(tokens) == "string" then
     tokens = self:parse(tokens, tags)
   end
@@ -189,8 +190,9 @@ function renderer:compile(tokens, tags)
 end
 
 function renderer:compile_partial(name, tokens, tags)
-  self._partial_cache[name] = self:compile(tokens, tags)
-  return self._partial_cache[name]
+  tags = tags or self.tags
+  self.partial_cache[name] = self:compile(tokens, tags)
+  return self.partial_cache[name]
 end
 
 function renderer:render(template, view, tags)
@@ -198,11 +200,11 @@ function renderer:render(template, view, tags)
     return ""
   end
 
-  local fn = self._cache[template]
+  local fn = self.cache[template]
 
   if not fn then
     fn = self:compile(template, tags)
-    self._cache[template] = fn
+    self.cache[template] = fn
   end
 
   return fn(view)
@@ -256,7 +258,7 @@ function renderer:_inverted(name, context, callback)
 end
 
 function renderer:_partial(name, context)
-  local fn = self._partial_cache[name]
+  local fn = self.partial_cache[name]
 
   if fn then --> save four lines: return fn and fn(context, self) or ""
     return fn(context, self)
@@ -287,6 +289,7 @@ end
 -- opening and closing tags used in the template (e.g. ["<%", "%>"]). Of
 -- course, the default is to use mustaches (i.e. Mustache.tags).
 function renderer:parse(template, tags)
+  tags = tags or self.tags
   local tag_patterns = escape_tags(tags)
   local scanner = Scanner:new(template)
   local tokens = {} -- token buffer
@@ -368,8 +371,9 @@ end
 
 function renderer:new()
   local out = { 
-    _cache = {},
-    _partial_cache = {},
+    cache         = {},
+    partial_cache = {},
+    tags           = {"{{", "}}"}
   }
   setmetatable(out, { __index = self })
   out:clear_cache() --> is this needed?
