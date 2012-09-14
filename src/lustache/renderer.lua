@@ -177,7 +177,7 @@ end
 
 function renderer:compile(tokens, tags)
   if type(tokens) == "string" then
-    tokens = parse(tokens, tags)
+    tokens = self:parse(tokens, tags)
   end
 
   local fn = compile_tokens(tokens)
