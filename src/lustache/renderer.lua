@@ -19,7 +19,7 @@ local html_escape_characters = {
   ["/"] = "&#x2F"
 }
 
-local function test_pattern (str, pattern)
+local function test_pattern(str, pattern)
   return str:find(pattern) and true or false
 end
 
@@ -162,90 +162,6 @@ local function squash_tokens(tokens)
 
 end
 
--- Breaks up the given `template` string into a tree of token objects. If
--- `tags` is given here it must be an array with two string values: the
--- opening and closing tags used in the template (e.g. ["<%", "%>"]). Of
--- course, the default is to use mustaches (i.e. Mustache.tags).
-local function parse(template, tags)
-  local tag_patterns = escape_tags(tags)
-  local scanner = Scanner:new(template)
-  local tokens = {} -- token buffer
-  local spaces = {} -- indices of whitespace tokens on the current line
-  local has_tag = false -- is there a {{tag} on the current line?
-  local non_space = false -- is there a non-space char on the current line?
-
-  -- Strips all whitespace tokens array for the current line if there was
-  -- a {{#tag}} on it and otherwise only space
-
-  local type, value, chr
-
-  while not scanner:eos() do
-    value = scanner:scan_until(tag_patterns[1])
-
-    if value then
-      for i = 1, #value do
-        chr = value:sub(i,i)
-
-        if is_whitespace(chr) then
-          table.insert(spaces, #tokens)
-        else
-          non_space = true
-        end
-
-        if chr == "\n" then
-          chr = "\\n"
-        end
-
-        if chr == "\r" then
-          chr = "\\r"
-        end
-        table.insert(tokens, { type = "text", value = chr })
-      end
-    end
-
-    if not scanner:scan(tag_patterns[1]) then
-      break
-    end
-
-    has_tag = true
-    type = scanner:scan(patterns.tag) or "name"
-
-    scanner:scan(patterns.white)
-
-    if type == "=" then
-      value = scanner:scan_until(patterns.eq)
-      scanner:scan(patterns.eq)
-      scanner:scan_until(tag_patterns[2])
-    elseif type == "{" then
-      local close_pattern = "%s*}"..tags[2]
-      value = scanner:scan_until(close_pattern)
-      scanner:scan(patterns.curly)
-      scanner:scan_until(tag_patterns[2])
-    else
-      value = scanner:scan_until(tag_patterns[2])
-    end
-
-    if not scanner:scan(tag_patterns[2]) then
-      error("Unclosed tag at " .. scanner.pos)
-    end
-
-    table.insert(tokens, { type = type, value = value })
-
-    if type == "name" or type == "{" or type == "&" then
-      non_space = true
-    end
-
-    if type == "=" then
-      tags = string.split(value, patterns.space)
-      tag_patterns = escape_tags(tags)
-    end
-  end
-
-  squash_tokens(tokens)
-
-  return nest_tokens(tokens)
-end
-
 local function make_context(view)
   if not view then return view end
 
@@ -333,7 +249,7 @@ function renderer:_inverted(name, context, callback)
   -- doesn't exist, is false, or is an empty list.
 
   if value == nil or value == false or (is_array(value) and #value == 0) then
-    return callback(context, this)
+    return callback(context, this) --> ?????
   end
 
   return ""
@@ -366,8 +282,88 @@ function renderer:_name(name, context, escape)
   return str
 end
 
-function renderer:parse(template, tags) --> refactor this properly
-  return parse(template, tags)
+-- Breaks up the given `template` string into a tree of token objects. If
+-- `tags` is given here it must be an array with two string values: the
+-- opening and closing tags used in the template (e.g. ["<%", "%>"]). Of
+-- course, the default is to use mustaches (i.e. Mustache.tags).
+function renderer:parse(template, tags)
+  local tag_patterns = escape_tags(tags)
+  local scanner = Scanner:new(template)
+  local tokens = {} -- token buffer
+  local spaces = {} -- indices of whitespace tokens on the current line
+  local has_tag = false -- is there a {{tag} on the current line?
+  local non_space = false -- is there a non-space char on the current line?
+
+  -- Strips all whitespace tokens array for the current line if there was
+  -- a {{#tag}} on it and otherwise only space
+
+  local type, value, chr
+
+  while not scanner:eos() do
+    value = scanner:scan_until(tag_patterns[1])
+
+    if value then
+      for i = 1, #value do
+        chr = value:sub(i,i)
+
+        if is_whitespace(chr) then
+          table.insert(spaces, #tokens)
+        else
+          non_space = true
+        end
+
+        if chr == "\n" then
+          chr = "\\n"
+        end
+
+        if chr == "\r" then
+          chr = "\\r"
+        end
+        table.insert(tokens, { type = "text", value = chr })
+      end
+    end
+
+    if not scanner:scan(tag_patterns[1]) then
+      break
+    end
+
+    has_tag = true
+    type = scanner:scan(patterns.tag) or "name"
+
+    scanner:scan(patterns.white)
+
+    if type == "=" then
+      value = scanner:scan_until(patterns.eq)
+      scanner:scan(patterns.eq)
+      scanner:scan_until(tag_patterns[2])
+    elseif type == "{" then
+      local close_pattern = "%s*}"..tags[2]
+      value = scanner:scan_until(close_pattern)
+      scanner:scan(patterns.curly)
+      scanner:scan_until(tag_patterns[2])
+    else
+      value = scanner:scan_until(tag_patterns[2])
+    end
+
+    if not scanner:scan(tag_patterns[2]) then
+      error("Unclosed tag at " .. scanner.pos)
+    end
+
+    table.insert(tokens, { type = type, value = value })
+
+    if type == "name" or type == "{" or type == "&" then
+      non_space = true
+    end
+
+    if type == "=" then
+      tags = string.split(value, patterns.space)
+      tag_patterns = escape_tags(tags)
+    end
+  end
+
+  squash_tokens(tokens)
+
+  return nest_tokens(tokens)
 end
 
 function renderer:new()
@@ -376,7 +372,7 @@ function renderer:new()
     _partial_cache = {},
   }
   setmetatable(out, { __index = self })
-  out:clear_cache()
+  out:clear_cache() --> is this needed?
   return out
 end
 

@@ -2,9 +2,9 @@
 -- Copyright 2012 Olivine Labs, LLC <projects@olivinelabs.com>
 -- MIT Licensed.
 
--- Utility functions.
+-- TODO: kill dangerous unicode https://github.com/janl/mustache.js/blob/master/mustache.js#L66
 
---TODO: kill dangerous unicode https://github.com/janl/mustache.js/blob/master/mustache.js#L66
+-- Utility functions.
 
 function string.split(str, sep) --> this is bad practice but i don't care right now
   local sep, fields = sep or ".", {}
@@ -13,7 +13,7 @@ function string.split(str, sep) --> this is bad practice but i don't care right 
   return fields
 end
 
---> trying not to tamper with code, but this is better:
+--> this is more efficient:
 
 -- function string.split(str, sep)
 --   local out = {}
@@ -21,14 +21,11 @@ end
 --   return out
 -- end
 
-local Renderer = require "lustache.renderer"
-
 local lustache = {
-  name = "lustache",
-  version = "1.0-1",
-  tags = {"{{", "}}"},
-  renderer = Renderer:new(),
-  Context = Context,
+  name     = "lustache",
+  version  = "1.1-1",
+  tags     = {"{{", "}}"},
+  renderer = require("lustache.renderer"):new(),
 }
 
 function lustache:clear_cache()

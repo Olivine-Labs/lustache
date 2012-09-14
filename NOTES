@@ -3,7 +3,8 @@ furq's excellent refactoring notes:
 * lustache.render() becomes lustache:render() and so forth
 * Context() becomes require("context"):new() and so forth
 * RenderFunctionsWithArgsTest fails atm, tags are a bit of a mess
-* probably not all of the functions each module exposes need to be exposed
 * specs need to be run with busted_bootstrap for relative paths in package.path to work
 * code itself hasn't been touched, comments marked with --> are "suggestions"
 * ^ except line 83-84 in renderer.lua to fix a bug
+* i didn't make much attempt to actually understand the code, so some stuff may not make sense
+* probably not all of the functions each module exposes need to be exposed

@@ -58,7 +58,7 @@ function context:new(view, parent)
     _magic = "1235123123", --ohgodwhy
   }
   setmetatable(out, { __index = self })
-  out:clear_cache() --> why?
+  out:clear_cache() --> is this needed?
   return out
 end
 
