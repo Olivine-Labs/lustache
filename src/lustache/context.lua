@@ -1,7 +1,10 @@
+local string_find, string_split, tostring, type =
+      string.find, string.split, tostring, type
+
 local context = {}
 
 function context:clear_cache()
-  self._cache = {}
+  self.cache = {}
 end
 
 function context:push(view)
@@ -9,7 +12,7 @@ function context:push(view)
 end
 
 function context:lookup(name)
-  local value = self._cache[name]
+  local value = self.cache[name]
 
   if not value then
     if name == "." then
@@ -18,8 +21,8 @@ function context:lookup(name)
       local context = self
 
       while context do
-        if name:find(".") > 0 then
-          local names = string.split(name, ".")
+        if string_find(name, ".") > 0 then
+          local names = string_split(name, ".")
           local i = 0
 
           value = context.view
@@ -44,7 +47,7 @@ function context:lookup(name)
       end
     end
 
-    self._cache[name] = value
+    self.cache[name] = value
   end
 
   return value
@@ -52,14 +55,12 @@ end
 
 function context:new(view, parent)
   local out = {
-    view = view,
+    view   = view,
     parent = parent,
-    _cache = {},
-    _magic = "1235123123", --ohgodwhy
+    cache  = {},
+    magic  = "1235123123", --ohgodwhy
   }
-  setmetatable(out, { __index = self })
-  out:clear_cache() --> is this needed?
-  return out
+  return setmetatable(out, { __index = self })
 end
 
 return context
