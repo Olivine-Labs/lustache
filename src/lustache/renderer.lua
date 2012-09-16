@@ -42,6 +42,7 @@ local function is_array(array)
 end
 
 local function quote(str)
+  --> return '"' .. string.gsub(str, '"', '\\"') .. '"'
   return '"'..string.gsub(str, "\"","\\\"")..'"'
 end
 
@@ -77,6 +78,8 @@ local function compile_tokens(tokens, return_body)
     end
   end
 
+  --> this returns a string or a function?? what the fuck
+
   if return_body then
     return "return "..table.concat(body, " .. ")
   else
@@ -101,6 +104,7 @@ local function nest_tokens(tokens)
   for i,token in ipairs(tokens) do
     if token.type == "#" or token.type == "^" then
       token.tokens = {}
+      --> use tbl[#tbl+1], not table.insert
       table.insert(sections, token)
       table.insert(collector, token)
       collector = token.tokens
@@ -126,6 +130,7 @@ local function nest_tokens(tokens)
     end
   end
 
+  --> use sections[#sections] = nil
   section = table.remove(sections, #sections)
 
   if section then
@@ -165,6 +170,7 @@ end
 local function make_context(view)
   if not view then return view end
 
+  --> you can compare nil and string, first check is redundant
   return view._magic and view._magic == "1235123123" and view or Context:new(view)
 end
 
@@ -195,7 +201,7 @@ function renderer:compile_partial(name, tokens, tags)
   return self.partial_cache[name]
 end
 
-function renderer:render(template, view, tags)
+function renderer:render(template, view)
   if not template then
     return ""
   end
@@ -203,7 +209,7 @@ function renderer:render(template, view, tags)
   local fn = self.cache[template]
 
   if not fn then
-    fn = self:compile(template, tags)
+    fn = self:compile(template, self.tags)
     self.cache[template] = fn
   end
 
