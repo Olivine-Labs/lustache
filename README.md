@@ -31,7 +31,7 @@ using `luarocks install lustache`.  On OSX, you can `brew install luarocks`.
 
 Below is quick example how to use lustache:
 
-    lustache = require "lustache"
+    local lustache = require "lustache"
 
     view_model = {
       title = "Joe",
@@ -40,9 +40,9 @@ Below is quick example how to use lustache:
       end
     }
 
-    output = lustache.render("{{title}} spends {{calc}}", view)
+    output = lustache:render("{{title}} spends {{calc}}", view)
 
-In this example, the `lustache.render` function takes two parameters: 1) the
+In this example, the `lustache:render` function takes two parameters: 1) the
 [mustache](http://mustache.github.com/) template and 2) a `view_model` object
 that contains the data and code needed to render the template.
 
@@ -324,7 +324,7 @@ Can be thought of as a single, expanded template:
     {{/names}}
 
 In lustache an object of partials may be passed as the third argument to
-`lustache.render`. The object should be keyed by the name of the partial, and
+`lustache:render`. The object should be keyed by the name of the partial, and
 its value should be the partial text.
 
 ### Set Delimiter
