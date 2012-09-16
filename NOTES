@@ -1,9 +1,0 @@
-furq's excellent refactoring notes:
-
-* lustache.render() is now lustache:render() and so forth
-* Context() is now require("context"):new() and so forth (only needed internally anyway)
-* specs need to be run with busted_bootstrap for relative paths in package.path to work
-* code itself has been left mostly untouched (aside from one bugfix)
-* not benchmarked it but it should be quicker now; localising string.* etc would make it quicker again
-* any comments i've added (suggestions etc) are marked with -->
-* if i ever catch you using globals again i'll pump your fucking house full of wasps okay

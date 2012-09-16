@@ -51,7 +51,7 @@ local function quote(str)
 end
 
 local function escape_html(str)
-  return str:gsub("[&<>\"\'/]", function(str) return html_escape_characters[str] end)
+  return string_gsub(str, '[&<>"\'/]', function(str) return html_escape_characters[str] end)
 end
 
 -- Low-level function that compiles the given `tokens` into a
