@@ -25,7 +25,7 @@ local html_escape_characters = {
 }
 
 local function test_pattern(str, pattern)
-  return str:find(pattern) and true or false
+  return string_find(str, pattern) and true or false
 end
 
 local function is_whitespace(str)
@@ -93,8 +93,8 @@ end
 
 local function escape_tags(tags)
   return {
-    tags[1]:gsub("%%", "%%%%").."%s*",
-    "%s*"..tags[2]:gsub("%%", "%%%%"),
+    string_gsub(tags[1], "%%", "%%%%").."%s*",
+    "%s*"..string_gsub(tags[2], "%%", "%%%%"),
   }
 end
 
@@ -311,7 +311,7 @@ function renderer:parse(template, tags)
 
     if value then
       for i = 1, #value do
-        chr = value:sub(i,i)
+        chr = string_sub(value,i,i)
 
         if is_whitespace(chr) then
           spaces[#spaces+1] = #tokens

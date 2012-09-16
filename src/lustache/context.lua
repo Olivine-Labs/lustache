@@ -1,4 +1,5 @@
-local tostring, type = tostring, type
+local string_find, string_split, tostring, type =
+      string.find, string.split, tostring, type
 
 local context = {}
 
@@ -20,8 +21,8 @@ function context:lookup(name)
       local context = self
 
       while context do
-        if name:find(".") > 0 then
-          local names = string.split(name, ".")
+        if string_find(name, ".") > 0 then
+          local names = string_split(name, ".")
           local i = 0
 
           value = context.view
