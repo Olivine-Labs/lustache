@@ -4,9 +4,11 @@
 
 -- TODO: kill dangerous unicode https://github.com/janl/mustache.js/blob/master/mustache.js#L66
 
+local string_gmatch = string.gmatch
+
 function string.split(str, sep)
   local out = {}
-  for m in str:gmatch("[^"..sep.."]+") do out[#out+1] = m end
+  for m in string_gmatch(str, "[^"..sep.."]+") do out[#out+1] = m end
   return out
 end
 
