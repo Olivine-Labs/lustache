@@ -1,6 +1,11 @@
 local Scanner  = require "lustache.scanner"
 local Context  = require "lustache.context"
 
+local error, ipairs, loadstring, pairs, setmetatable, tostring, type = 
+      error, ipairs, loadstring, pairs, setmetatable, tostring, type 
+local math_floor, math_max, string_gsub, table_concat, table_insert, table_remove =
+      math.floor, math.max, string.gsub, table.concat, table.insert, table.remove
+
 local patterns = {
   white = "%s*",
   space = "%s+",
@@ -28,22 +33,21 @@ local function is_whitespace(str)
 end
 
 local function is_positive_integer(n)
-  return type(n) == "number" and n > 0 and math.floor(n) == n
+  return type(n) == "number" and n > 0 and math_floor(n) == n
 end
 
 local function is_array(array)
   local max, n = 0, 0
   for k, _ in pairs(array) do
     if not is_positive_integer(k) then return false end
-    max = math.max(max, k)
+    max = math_max(max, k)
     n = n + 1
   end
   return n == max
 end
 
 local function quote(str)
-  --> return '"' .. string.gsub(str, '"', '\\"') .. '"'
-  return '"'..string.gsub(str, "\"","\\\"")..'"'
+  return '"'..string_gsub(str, '"', '\\"')..'"'
 end
 
 local function escape_html(str)
@@ -64,16 +68,15 @@ local function compile_tokens(tokens, return_body)
     for i,token in ipairs(tokens) do
       if token.type == "#" or token.type == "^" then
         method = token.type == "#" and "_section" or "_inverted"
-        table.insert(body,
+        body[#body+1] =
           "r:"..method.."("..quote(token.value)..", c, function(c,r)\n"..compile_tokens(token.tokens, true).."\nend)"
-        )
       elseif token.type == "{" or token.type == "&" or token.type == "name" then
         escape = token.type == "name" and "true" or "false"
-        table.insert(body, "r:_name("..quote(token.value)..", c, "..escape..")")
+        body[#body+1] = "r:_name("..quote(token.value)..", c, "..escape..")")
       elseif token.type == ">" then
-        table.insert(body, "r:_partial("..quote(token.value)..", c)")
+        body[#body+1] = "r:_partial("..quote(token.value)..", c)")
       elseif token.type == "text" then
-        table.insert(body, quote(token.value))
+        body[#body+1] = quote(token.value))
       end
     end
   end
@@ -81,9 +84,9 @@ local function compile_tokens(tokens, return_body)
   --> this returns a string or a function?? what the fuck
 
   if return_body then
-    return "return "..table.concat(body, " .. ")
+    return "return "..table_concat(body, " .. ")
   else
-    body = "return function(c,r) return "..table.concat(body, " .. ").." end"
+    body = "return function(c,r) return "..table_concat(body, " .. ").." end"
     return loadstring(body)()
   end
 end
@@ -104,9 +107,8 @@ local function nest_tokens(tokens)
   for i,token in ipairs(tokens) do
     if token.type == "#" or token.type == "^" then
       token.tokens = {}
-      --> use tbl[#tbl+1], not table.insert
-      table.insert(sections, token)
-      table.insert(collector, token)
+      sections[#sections+1] = token
+      collector[#collector+1] = token
       collector = token.tokens
     elseif token.type == "/" then
       if #sections == 0 then
@@ -114,7 +116,7 @@ local function nest_tokens(tokens)
       end
 
       -- Make sure there are no open sections when we're done
-      section = table.remove(sections, #sections)
+      sections[#sections] = nil
 
       if not section.value == token.value then
         error("Unclosed section: "..section.value)
@@ -126,12 +128,11 @@ local function nest_tokens(tokens)
         collector = tree
       end
     else
-      table.insert(collector, token)
+      collector[#collector+1] = token
     end
   end
 
-  --> use sections[#sections] = nil
-  section = table.remove(sections, #sections)
+  sections[#sections] = nil
 
   if section then
     error("Unclosed section: "..section.value)
@@ -157,7 +158,7 @@ local function squash_tokens(tokens)
 
     if last_token and last_token.type == "text" and token and token.type == "text" then
       last_token.value = last_token.value..token.value
-      table.remove(tokens, i)
+      table_remove(tokens, i)
     else
       last_token = token
     end
@@ -169,9 +170,7 @@ end
 
 local function make_context(view)
   if not view then return view end
-
-  --> you can compare nil and string, first check is redundant
-  return view._magic and view._magic == "1235123123" and view or Context:new(view)
+  return view.magic == "1235123123" and view or Context:new(view)
 end
 
 local renderer = {}
@@ -188,10 +187,9 @@ function renderer:compile(tokens, tags)
   end
 
   local fn = compile_tokens(tokens)
-  local this = self --> ???
 
   return function(view)
-    return fn(make_context(view), this)
+    return fn(make_context(view), self)
   end
 end
 
@@ -201,7 +199,13 @@ function renderer:compile_partial(name, tokens, tags)
   return self.partial_cache[name]
 end
 
-function renderer:render(template, view)
+function renderer:render(template, view, partials)
+  if partials then
+    for name, body in pairs(partials) do
+      self:compile_partial(name, body)
+    end
+  end
+
   if not template then
     return ""
   end
@@ -233,13 +237,12 @@ function renderer:_section(name, context, callback)
     return callback(context:push(value), self)
   elseif type(value) == "function" then
     local section_text = callback(context, self)
-    local this = self --> ???
 
     local scoped_render = function(template)
-      return this:render(template, context)
+      return self:render(template, context)
     end
 
-    return value(this, section_text, scoped_render) or ""
+    return value(self, section_text, scoped_render) or ""
   else
     if value then
       return callback(context, self)
@@ -257,7 +260,7 @@ function renderer:_inverted(name, context, callback)
   -- doesn't exist, is false, or is an empty list.
 
   if value == nil or value == false or (is_array(value) and #value == 0) then
-    return callback(context, this) --> ?????
+    return callback(context, self)
   end
 
   return ""
@@ -265,12 +268,7 @@ end
 
 function renderer:_partial(name, context)
   local fn = self.partial_cache[name]
-
-  if fn then --> save four lines: return fn and fn(context, self) or ""
-    return fn(context, self)
-  end
-
-  return ""
+  return fn and fn(context, self) or ""
 end
 
 function renderer:_name(name, context, escape)
@@ -316,7 +314,7 @@ function renderer:parse(template, tags)
         chr = value:sub(i,i)
 
         if is_whitespace(chr) then
-          table.insert(spaces, #tokens)
+          spaces[#spaces+1] = #tokens
         else
           non_space = true
         end
@@ -328,7 +326,7 @@ function renderer:parse(template, tags)
         if chr == "\r" then
           chr = "\\r"
         end
-        table.insert(tokens, { type = "text", value = chr })
+        tokens[#tokens+1] = { type = "text", value = chr })
       end
     end
 
@@ -358,7 +356,7 @@ function renderer:parse(template, tags)
       error("Unclosed tag at " .. scanner.pos)
     end
 
-    table.insert(tokens, { type = type, value = value })
+    tokens[#tokens+1] = { type = type, value = value })
 
     if type == "name" or type == "{" or type == "&" then
       non_space = true
@@ -381,9 +379,7 @@ function renderer:new()
     partial_cache = {},
     tags           = {"{{", "}}"}
   }
-  setmetatable(out, { __index = self })
-  out:clear_cache() --> is this needed?
-  return out
+  return setmetatable(out, { __index = self })
 end
 
 return renderer

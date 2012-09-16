@@ -16,8 +16,6 @@ function scanner:scan(pattern)
 
     return match
   end
-
-  return nil --> redundant?
 end
 
 -- Skips all text until the given regular expression can be matched. Returns
