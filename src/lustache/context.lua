@@ -54,10 +54,10 @@ end
 
 function context:new(view, parent)
   local out = {
-    view = view,
+    view   = view,
     parent = parent,
-    cache = {},
-    magic = "1235123123", --ohgodwhy
+    cache  = {},
+    magic  = "1235123123", --ohgodwhy
   }
   return setmetatable(out, { __index = self })
 end

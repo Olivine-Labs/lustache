@@ -3,8 +3,8 @@ local Context  = require "lustache.context"
 
 local error, ipairs, loadstring, pairs, setmetatable, tostring, type = 
       error, ipairs, loadstring, pairs, setmetatable, tostring, type 
-local math_floor, math_max, string_gsub, table_concat, table_insert, table_remove =
-      math.floor, math.max, string.gsub, table.concat, table.insert, table.remove
+local math_floor, math_max, string_gsub, string_split, table_concat, table_insert, table_remove =
+      math.floor, math.max, string.gsub, string.split, table.concat, table.insert, table.remove
 
 local patterns = {
   white = "%s*",
@@ -72,11 +72,11 @@ local function compile_tokens(tokens, return_body)
           "r:"..method.."("..quote(token.value)..", c, function(c,r)\n"..compile_tokens(token.tokens, true).."\nend)"
       elseif token.type == "{" or token.type == "&" or token.type == "name" then
         escape = token.type == "name" and "true" or "false"
-        body[#body+1] = "r:_name("..quote(token.value)..", c, "..escape..")")
+        body[#body+1] = "r:_name("..quote(token.value)..", c, "..escape..")"
       elseif token.type == ">" then
-        body[#body+1] = "r:_partial("..quote(token.value)..", c)")
+        body[#body+1] = "r:_partial("..quote(token.value)..", c)"
       elseif token.type == "text" then
-        body[#body+1] = quote(token.value))
+        body[#body+1] = quote(token.value)
       end
     end
   end
@@ -100,7 +100,7 @@ end
 
 local function nest_tokens(tokens)
   local tree = {}
-  local collector = tree
+  local collector = tree 
   local sections = {}
   local token, section
 
@@ -116,7 +116,7 @@ local function nest_tokens(tokens)
       end
 
       -- Make sure there are no open sections when we're done
-      sections[#sections] = nil
+      section = table_remove(sections, #sections)
 
       if not section.value == token.value then
         error("Unclosed section: "..section.value)
@@ -132,7 +132,7 @@ local function nest_tokens(tokens)
     end
   end
 
-  sections[#sections] = nil
+  section = table_remove(sections, #sections)
 
   if section then
     error("Unclosed section: "..section.value)
@@ -319,6 +319,8 @@ function renderer:parse(template, tags)
           non_space = true
         end
 
+        --chr = (string_match(chr, "[\a\b\f\n\r\t\v]") and "\"..chr or chr
+
         if chr == "\n" then
           chr = "\\n"
         end
@@ -326,7 +328,7 @@ function renderer:parse(template, tags)
         if chr == "\r" then
           chr = "\\r"
         end
-        tokens[#tokens+1] = { type = "text", value = chr })
+        tokens[#tokens+1] = { type = "text", value = chr }
       end
     end
 
@@ -356,14 +358,14 @@ function renderer:parse(template, tags)
       error("Unclosed tag at " .. scanner.pos)
     end
 
-    tokens[#tokens+1] = { type = type, value = value })
+    tokens[#tokens+1] = { type = type, value = value }
 
     if type == "name" or type == "{" or type == "&" then
       non_space = true
     end
 
     if type == "=" then
-      tags = string.split(value, patterns.space)
+      tags = string_split(value, patterns.space)
       tag_patterns = escape_tags(tags)
     end
   end
