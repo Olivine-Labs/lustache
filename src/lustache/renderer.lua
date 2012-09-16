@@ -3,8 +3,8 @@ local Context  = require "lustache.context"
 
 local error, ipairs, loadstring, pairs, setmetatable, tostring, type = 
       error, ipairs, loadstring, pairs, setmetatable, tostring, type 
-local math_floor, math_max, string_gsub, string_split, table_concat, table_insert, table_remove =
-      math.floor, math.max, string.gsub, string.split, table.concat, table.insert, table.remove
+local math_floor, math_max, string_find, string_gsub, string_split, string_sub, table_concat, table_insert, table_remove =
+      math.floor, math.max, string.find, string.gsub, string.split, string.sub, table.concat, table.insert, table.remove
 
 local patterns = {
   white = "%s*",
@@ -23,14 +23,6 @@ local html_escape_characters = {
   ["'"] = "&#39;",
   ["/"] = "&#x2F"
 }
-
-local function test_pattern(str, pattern)
-  return string_find(str, pattern) and true or false
-end
-
-local function is_whitespace(str)
-  return test_pattern(str, patterns.space)
-end
 
 local function is_positive_integer(n)
   return type(n) == "number" and n > 0 and math_floor(n) == n
@@ -146,24 +138,16 @@ end
 -- to a single token.
 local function squash_tokens(tokens)
   local last_token, token
-  local i = #tokens
 
-  while i > 0 do
-    token = tokens[i]
-    last_token = nil
+  for i = #tokens, 2, -1 do
+    token, last_token = tokens[i], tokens[i-1]
 
-    if i > 1 then
-      last_token = tokens[i-1]
-    end
-
-    if last_token and last_token.type == "text" and token and token.type == "text" then
+    if last_token.type == "text" and token.type == "text" then
       last_token.value = last_token.value..token.value
       table_remove(tokens, i)
     else
       last_token = token
     end
-
-    i = i-1
   end
 
 end
@@ -313,7 +297,7 @@ function renderer:parse(template, tags)
       for i = 1, #value do
         chr = string_sub(value,i,i)
 
-        if is_whitespace(chr) then
+        if string_find(chr, "%s+") then
           spaces[#spaces+1] = #tokens
         else
           non_space = true
@@ -379,7 +363,7 @@ function renderer:new()
   local out = { 
     cache         = {},
     partial_cache = {},
-    tags           = {"{{", "}}"}
+    tags          = {"{{", "}}"}
   }
   return setmetatable(out, { __index = self })
 end

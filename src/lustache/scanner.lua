@@ -11,7 +11,7 @@ end
 -- Tries to match the given regular expression at the current position.
 -- Returns the matched text if it can match, `null` otherwise.
 function scanner:scan(pattern)
-  local match = self.tail, pattern)
+  local match = string_match(self.tail, pattern)
 
   if match and string_find(self.tail, pattern) == 1 then
     self.tail = string_sub(self.tail, #match + 1)
@@ -45,9 +45,9 @@ end
 
 function scanner:new(str)
   local out = {
-    str = str,
+    str  = str,
     tail = str,
-    pos = 0
+    pos  = 0
   }
   return setmetatable(out, { __index = self } )
 end
