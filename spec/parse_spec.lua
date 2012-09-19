@@ -1,5 +1,3 @@
-package.path = "../src/?.lua"
-
 local lustache = require "lustache"
 
 expectations = {

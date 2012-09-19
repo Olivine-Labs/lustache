@@ -1,5 +1,3 @@
-package.path = "../src/?.lua"
-
 local lustache = require "lustache"  -- only needed to set string.split
 
 local topic = function()

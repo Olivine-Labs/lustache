@@ -24,6 +24,10 @@ install:
   - cd busted
   - sudo luarocks make
   - cd ../
+  - git clone git://github.com/Olivine-Labs/lustache.git
+  - cd lustache
+  - sudo luarocks make
+  - cd ../
 
 script: "busted spec"
 

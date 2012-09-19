@@ -46,6 +46,14 @@ In this example, the `lustache:render` function takes two parameters: 1) the
 [mustache](http://mustache.github.com/) template and 2) a `view_model` object
 that contains the data and code needed to render the template.
 
+
+### Running Tests
+
+Lustache uses the [busted](http://olivinelabs.com/busted) testing framework.
+
+Run `luarocks make`, then `busted spec`.
+Install busted through `luarocks install busted`.
+
 ## Templates
 
 A [mustache](http://mustache.github.com/) template is a string that contains

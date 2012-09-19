@@ -1,16 +1,14 @@
-package.path = "../src/?.lua"
-
 local lustache = require "lustache"
 
 describe("rendering", function()
   local template, data, partials, expectation
 
-  function before_each()
+  before_each(function()
     template = ""
     data =  {}
     partials = {}
     expectation = ""
-  end
+  end)
 
   it("RenderNothingTest", function()
     assert.equal(expectation, lustache:render(template, data, partials))
