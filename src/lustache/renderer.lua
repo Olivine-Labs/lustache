@@ -123,23 +123,25 @@ local function nest_tokens(tokens)
   return tree
 end
 
-
 -- Combines the values of consecutive text tokens in the given `tokens` array
 -- to a single token.
 local function squash_tokens(tokens)
-  local last_token, token
-
-  for i = #tokens, 2, -1 do
-    token, last_token = tokens[i], tokens[i-1]
-
-    if last_token.type == "text" and token.type == "text" then
-      last_token.value = last_token.value..token.value
-      table_remove(tokens, i)
+  local out, txt = {}, {}
+  for _, v in ipairs(tokens) do
+    if v.type == "text" then
+      txt[#txt+1] = v.value
     else
-      last_token = token  --> this seems redundant but removing it makes it slower?
+      if #txt > 0 then
+        out[#out+1] = { type = "text", value = table_concat(txt) }
+        txt = {}
+      end
+      out[#out+1] = v
     end
   end
-
+  if #txt > 0 then
+    out[#out+1] = { type = "text", value = table_concat(txt) }
+  end
+  return out
 end
 
 local function make_context(view)
@@ -326,7 +328,7 @@ function renderer:parse(template, tags)
     tokens[#tokens+1] = { type = type, value = value }
 
     if type == "name" or type == "{" or type == "&" then
-      non_space = true
+      non_space = true --> what does this do?
     end
 
     if type == "=" then
@@ -335,9 +337,7 @@ function renderer:parse(template, tags)
     end
   end
 
-  squash_tokens(tokens)
-
-  return nest_tokens(tokens)
+  return nest_tokens(squash_tokens(tokens))
 end
 
 function renderer:new()
