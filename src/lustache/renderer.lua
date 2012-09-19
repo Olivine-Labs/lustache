@@ -36,43 +36,41 @@ local function is_array(array)
   return n == max
 end
 
-local function quote(str)
-  return '"'..string_gsub(str, '"', '\\"')..'"'
-end
-
 -- Low-level function that compiles the given `tokens` into a
 -- function that accepts two arguments: a Context and a
--- Renderer. Returns the body of the function as a string if
--- `returnBody` is true.
--- ohgodwhy
+-- Renderer.
 
-local function compile_tokens(tokens, return_body)
-  local body = {'""'}
-  local token, method, escape
+local function compile_tokens(tokens)
+  local subs = {}
 
-  if tokens then
-    for i,token in ipairs(tokens) do
-      if token.type == "#" or token.type == "^" then
-        method = token.type == "#" and "_section" or "_inverted"
-        body[#body+1] =
-          "r:"..method.."("..quote(token.value)..", c, function(c,r)\n"..compile_tokens(token.tokens, true).."\nend)"
-      elseif token.type == "{" or token.type == "&" or token.type == "name" then
-        escape = token.type == "name" and "true" or "false"
-        body[#body+1] = "r:_name("..quote(token.value)..", c, "..escape..")"
-      elseif token.type == ">" then
-        body[#body+1] = "r:_partial("..quote(token.value)..", c)"
-      elseif token.type == "text" then
-        body[#body+1] = quote(token.value)
-      end
+  local function subrender(i, tokens)
+    if not subs[i] then
+      local fn = compile_tokens(tokens)
+      subs[i] = function(ctx, rnd) return fn(ctx, rnd) end
     end
+    return subs[i]
   end
 
-  if return_body then
-    return "return "..table_concat(body, " .. ")
-  else
-    body = "return function(c,r) return "..table_concat(body, " .. ").." end"
-    return loadstring(body)()
+  local function render(ctx, rnd)
+    local buf = {}
+    local token, section
+    for i, token in ipairs(tokens) do
+      local t = token.type
+      buf[#buf+1] = 
+        t == "#" and rnd:_section(
+          token.value, ctx, subrender(i, token.tokens)
+        ) or
+        t == "^" and rnd:_inverted(
+          token.value, ctx, subrender(i, token.tokens)
+        ) or
+        t == ">" and rnd:_partial(token.value, ctx) or
+        (t == "{" or t == "&") and rnd:_name(token.value, ctx, false) or
+        t == "name" and rnd:_name(token.value, ctx, true) or
+        t == "text" and token.value or ""
+    end
+    return table_concat(buf)
   end
+  return render
 end
 
 local function escape_tags(tags)
@@ -295,15 +293,6 @@ function renderer:parse(template, tags)
           non_space = true
         end
 
-        --chr = (string_match(chr, "[\a\b\f\n\r\t\v]") and "\"..chr or chr
-
-        if chr == "\n" then
-          chr = "\\n"
-        end
-
-        if chr == "\r" then
-          chr = "\\r"
-        end
         tokens[#tokens+1] = { type = "text", value = chr }
       end
     end
