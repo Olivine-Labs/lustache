@@ -1,4 +1,6 @@
-lustache = require 'lustache'
+package.path = "../src/?.lua"
+
+local lustache = require "lustache"
 
 expectations = {
   { template = "{{hi}}", value                                  = { { type= "name", value= "hi" } }},
@@ -56,7 +58,7 @@ describe("parsing", function()
 
   for i,v in ipairs(expectations) do
     it("Tests template #"..x, function()
-      local parsed = lustache.parse(v.template)
+      local parsed = lustache:parse(v.template)
       assert.same(parsed, v.value)
     end)
     x = x + 1

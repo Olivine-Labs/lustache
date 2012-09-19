@@ -1,8 +1,10 @@
-lustache = require 'lustache'
+package.path = "../src/?.lua"
+
+local lustache = require "lustache"  -- only needed to set string.split
 
 local topic = function()
   local view = { name = 'parent', message = 'hi', a = { b = 'b' } }
-  local context = lustache.Context(view)
+  local context = require("lustache.context"):new(view)
   return context, view
 end
 
