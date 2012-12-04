@@ -176,6 +176,10 @@ function renderer:compile_partial(name, tokens, tags)
 end
 
 function renderer:render(template, view, partials)
+  if type(self) == "string" then
+    error("Call mustache:render, not mustache.render!")
+  end
+
   if partials then
     for name, body in pairs(partials) do
       self:compile_partial(name, body)
