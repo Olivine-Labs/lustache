@@ -1,7 +1,7 @@
 package = "lustache"
-version = "1.1-1"
+version = "1.2-1"
 source = {
-  url = "https://github.com/downloads/Olivine-Labs/lustache/lustache-1.1.tar.gz",
+  url = "https://github.com/downloads/Olivine-Labs/lustache/lustache-1.2.tar.gz",
   dir = "lustache"
 }
 description = {
