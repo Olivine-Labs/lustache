@@ -40,7 +40,7 @@ Below is quick example how to use lustache:
       end
     }
 
-    output = lustache:render("{{title}} spends {{calc}}", view)
+    output = lustache:render("{{title}} spends {{calc}}", view_model)
 
 In this example, the `lustache:render` function takes two parameters: 1) the
 [mustache](http://mustache.github.com/) template and 2) a `view_model` object
