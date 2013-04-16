@@ -84,7 +84,7 @@ describe("rendering", function()
 
   it("RenderEscapedHTMLTest", function()
     template = "{{message}}"
-    expectation = "&lt;h1&gt;HI&lt;&#x2Fh1&gt;"
+    expectation = "&lt;h1&gt;HI&lt;&#x2F;h1&gt;"
     data = { message = "<h1>HI</h1>" }
     assert.equal(expectation, lustache:render(template, data, partials))
   end)
