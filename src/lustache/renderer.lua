@@ -21,7 +21,7 @@ local html_escape_characters = {
   [">"] = "&gt;",
   ['"'] = "&quot;",
   ["'"] = "&#39;",
-  ["/"] = "&#x2F"
+  ["/"] = "&#x2F;"
 }
 
 local function is_array(array)
