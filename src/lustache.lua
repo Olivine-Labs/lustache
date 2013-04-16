@@ -1,8 +1,6 @@
 -- lustache: Lua mustache template parsing.
--- Copyright 2012 Olivine Labs, LLC <projects@olivinelabs.com>
+-- Copyright 2013 Olivine Labs, LLC <projects@olivinelabs.com>
 -- MIT Licensed.
-
--- TODO: kill dangerous unicode https://github.com/janl/mustache.js/blob/master/mustache.js#L66
 
 local string_gmatch = string.gmatch
 
@@ -14,7 +12,7 @@ end
 
 local lustache = {
   name     = "lustache",
-  version  = "1.1-1",
+  version  = "1.3-1",
   renderer = require("lustache.renderer"):new(),
 }
 
