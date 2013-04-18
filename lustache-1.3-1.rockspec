@@ -2,7 +2,7 @@ package = "lustache"
 version = "1.3-1"
 source = {
   url = "https://github.com/Olivine-Labs/lustache/archive/v1.3.tar.gz",
-  dir = "lustache"
+  dir = "lustache-1.3"
 }
 description = {
   summary = "{{Mustache}} rendering for Lua",
