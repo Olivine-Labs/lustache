@@ -25,6 +25,7 @@ local html_escape_characters = {
 }
 
 local function is_array(array)
+  if type(array) ~= "table" then return false end
   local max, n = 0, 0
   for k, _ in pairs(array) do
     if not (type(k) == "number" and k > 0 and math_floor(k) == k) then
