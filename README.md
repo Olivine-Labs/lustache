@@ -132,7 +132,7 @@ The behavior of the section is determined by the value of the key.
 
 #### False Values or Empty Lists
 
-If the `person` key exists and has a value of `null`, `undefined`, or `false`,
+If the `person` key exists and has a value of `nil` or `false`,
 or is an empty list, the block will not be rendered.
 
 Template:
@@ -154,7 +154,7 @@ Output:
 
 #### Non-Empty Lists
 
-If the `person` key exists and is not `null`, `undefined`, or `false`, and is
+If the `person` key exists and is not `nil` or `false`, and is
 not an empty list the block will be rendered one or more times.
 
 When the value is a list, the block is rendered once for each item in the list.
@@ -265,7 +265,7 @@ Output:
 
 An inverted section opens with `{{^section}}` instead of `{{#section}}`. The
 block of an inverted section is rendered only if the value of that section's tag
-is `null`, `undefined`, `false`, or an empty list.
+is `nil`, `false`, or an empty list.
 
 Template:
 
