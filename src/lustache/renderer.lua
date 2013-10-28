@@ -149,7 +149,7 @@ local function make_context(view)
   return view.magic == "1235123123" and view or Context:new(view)
 end
 
-local renderer = {}
+local renderer = { }
 
 function renderer:clear_cache()
   self.cache = {}
@@ -169,21 +169,15 @@ function renderer:compile(tokens, tags)
   end
 end
 
-function renderer:compile_partial(name, tokens, tags)
-  tags = tags or self.tags
-  self.partial_cache[name] = self:compile(tokens, tags)
-  return self.partial_cache[name]
-end
-
 function renderer:render(template, view, partials)
   if type(self) == "string" then
     error("Call mustache:render, not mustache.render!")
   end
 
   if partials then
-    for name, body in pairs(partials) do
-      self:compile_partial(name, body)
-    end
+    -- remember partial table
+    -- used for runtime lookup & compile later on
+    self.partials = partials
   end
 
   if not template then
@@ -248,6 +242,19 @@ end
 
 function renderer:_partial(name, context)
   local fn = self.partial_cache[name]
+
+  -- check if partial cache exists
+  if (not fn and self.partials) then
+
+    local partial = self.partials[name]
+    if (not partial) then
+      return ""
+    end
+    
+    -- compile partial and store result in cache
+    fn = self:compile(partial)
+    self.partial_cache[name] = fn
+  end
   return fn and fn(context, self) or ""
 end
 
