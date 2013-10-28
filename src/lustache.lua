@@ -21,6 +21,7 @@ return setmetatable(lustache, {
     if self.renderer[idx] then return self.renderer[idx] end
   end,
   __newindex = function(self, idx, val)
+    if idx == "partials" then self.renderer.partials = val end
     if idx == "tags" then self.renderer.tags = val end
   end
 })
