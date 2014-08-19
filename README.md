@@ -240,7 +240,6 @@ Output:
 If the value of a section key is a function, it is called with the section's
 literal block of text, un-rendered, as its first argument. The second argument
 is a special rendering function that uses the current view as its view argument.
-It is called in the context of the current view object.
 
 Template:
 
@@ -250,10 +249,8 @@ View:
 
     {
       name = "Tater",
-      bold = function (self)
-        return function (text, render) 
+      bold = function (text, render)
           return "<b>" .. render(text) .. "</b>"
-        end
       end
     }
 
