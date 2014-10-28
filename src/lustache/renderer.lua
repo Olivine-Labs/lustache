@@ -41,12 +41,12 @@ end
 -- function that accepts two arguments: a Context and a
 -- Renderer.
 
-local function compile_tokens(tokens)
+local function compile_tokens(tokens, originalTemplate)
   local subs = {}
 
   local function subrender(i, tokens)
     if not subs[i] then
-      local fn = compile_tokens(tokens)
+      local fn = compile_tokens(tokens, originalTemplate)
       subs[i] = function(ctx, rnd) return fn(ctx, rnd) end
     end
     return subs[i]
@@ -59,12 +59,12 @@ local function compile_tokens(tokens)
       local t = token.type
       buf[#buf+1] = 
         t == "#" and rnd:_section(
-          token.value, ctx, subrender(i, token.tokens)
+          token, ctx, subrender(i, token.tokens), originalTemplate
         ) or
         t == "^" and rnd:_inverted(
           token.value, ctx, subrender(i, token.tokens)
         ) or
-        t == ">" and rnd:_partial(token.value, ctx) or
+        t == ">" and rnd:_partial(token.value, ctx, originalTemplate) or
         (t == "{" or t == "&") and rnd:_name(token.value, ctx, false) or
         t == "name" and rnd:_name(token.value, ctx, true) or
         t == "text" and token.value or ""
@@ -75,6 +75,7 @@ local function compile_tokens(tokens)
 end
 
 local function escape_tags(tags)
+
   return {
     string_gsub(tags[1], "%%", "%%%%").."%s*",
     "%s*"..string_gsub(tags[2], "%%", "%%%%"),
@@ -105,6 +106,8 @@ local function nest_tokens(tokens)
         error("Unclosed section: "..section.value)
       end
 
+      section.closingTagIndex = token.startIndex
+
       if #sections > 0 then
         collector = sections[#sections].tokens
       else
@@ -128,19 +131,24 @@ end
 -- to a single token.
 local function squash_tokens(tokens)
   local out, txt = {}, {}
+  local txtStartIndex, txtEndIndex
   for _, v in ipairs(tokens) do
     if v.type == "text" then
+      if #txt == 0 then
+        txtStartIndex = v.startIndex
+      end
       txt[#txt+1] = v.value
+      txtEndIndex = v.endIndex
     else
       if #txt > 0 then
-        out[#out+1] = { type = "text", value = table_concat(txt) }
+        out[#out+1] = { type = "text", value = table_concat(txt), startIndex = txtStartIndex, endIndex = txtEndIndex }
         txt = {}
       end
       out[#out+1] = v
     end
   end
   if #txt > 0 then
-    out[#out+1] = { type = "text", value = table_concat(txt) }
+    out[#out+1] = { type = "text", value = table_concat(txt), startIndex = txtStartIndex, endIndex = txtEndIndex  }
   end
   return out
 end
@@ -157,13 +165,13 @@ function renderer:clear_cache()
   self.partial_cache = {}
 end
 
-function renderer:compile(tokens, tags)
+function renderer:compile(tokens, tags, originalTemplate)
   tags = tags or self.tags
   if type(tokens) == "string" then
     tokens = self:parse(tokens, tags)
   end
 
-  local fn = compile_tokens(tokens)
+  local fn = compile_tokens(tokens, originalTemplate)
 
   return function(view)
     return fn(make_context(view), self)
@@ -188,15 +196,15 @@ function renderer:render(template, view, partials)
   local fn = self.cache[template]
 
   if not fn then
-    fn = self:compile(template, self.tags)
+    fn = self:compile(template, self.tags, template)
     self.cache[template] = fn
   end
 
   return fn(view)
 end
 
-function renderer:_section(name, context, callback)
-  local value = context:lookup(name)
+function renderer:_section(token, context, callback, originalTemplate)
+  local value = context:lookup(token.value)
 
   if type(value) == "table" then
     if is_array(value) then
@@ -211,13 +219,13 @@ function renderer:_section(name, context, callback)
 
     return callback(context:push(value), self)
   elseif type(value) == "function" then
-    local section_text = callback(context, self)
+    local section_text = string_sub(originalTemplate, token.endIndex+1, token.closingTagIndex - 1)
 
     local scoped_render = function(template)
       return self:render(template, context)
     end
 
-    return value(self, section_text, scoped_render) or ""
+    return value(section_text, scoped_render) or ""
   else
     if value then
       return callback(context, self)
@@ -241,7 +249,7 @@ function renderer:_inverted(name, context, callback)
   return ""
 end
 
-function renderer:_partial(name, context)
+function renderer:_partial(name, context, originalTemplate)
   local fn = self.partial_cache[name]
 
   -- check if partial cache exists
@@ -253,7 +261,7 @@ function renderer:_partial(name, context)
     end
     
     -- compile partial and store result in cache
-    fn = self:compile(partial)
+    fn = self:compile(partial, nil, originalTemplate)
     self.partial_cache[name] = fn
   end
   return fn and fn(context, self) or ""
@@ -295,6 +303,8 @@ function renderer:parse(template, tags)
   local type, value, chr
 
   while not scanner:eos() do
+    local start = scanner.pos
+
     value = scanner:scan_until(tag_patterns[1])
 
     if value then
@@ -307,7 +317,8 @@ function renderer:parse(template, tags)
           non_space = true
         end
 
-        tokens[#tokens+1] = { type = "text", value = chr }
+        tokens[#tokens+1] = { type = "text", value = chr, startIndex = start, endIndex = start }
+        start = start + 1
       end
     end
 
@@ -337,8 +348,7 @@ function renderer:parse(template, tags)
       error("Unclosed tag at " .. scanner.pos)
     end
 
-    tokens[#tokens+1] = { type = type, value = value }
-
+    tokens[#tokens+1] = { type = type, value = value, startIndex = start, endIndex = scanner.pos - 1 }
     if type == "name" or type == "{" or type == "&" then
       non_space = true --> what does this do?
     end
