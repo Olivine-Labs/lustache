@@ -242,7 +242,7 @@ function renderer:_inverted(name, context, callback)
   -- inverse value of the key. That is, they will be rendered if the key
   -- doesn't exist, is false, or is an empty list.
 
-  if value == nil or value == false or (is_array(value) and #value == 0) then
+  if value == nil or value == false or (type(value) == "table" and is_array(value) and #value == 0) then
     return callback(context, self)
   end
 
