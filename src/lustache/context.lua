@@ -2,6 +2,7 @@ local string_find, string_split, tostring, type =
       string.find, string.split, tostring, type
 
 local context = {}
+context.__index = context
 
 function context:clear_cache()
   self.cache = {}
@@ -58,9 +59,8 @@ function context:new(view, parent)
     view   = view,
     parent = parent,
     cache  = {},
-    magic  = "1235123123", --ohgodwhy
   }
-  return setmetatable(out, { __index = self })
+  return setmetatable(out, context)
 end
 
 return context
