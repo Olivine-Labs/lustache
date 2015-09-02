@@ -155,7 +155,7 @@ end
 
 local function make_context(view)
   if not view then return view end
-  return view.magic == "1235123123" and view or Context:new(view)
+  return getmetatable(view) == Context and view or Context:new(view)
 end
 
 local renderer = { }
