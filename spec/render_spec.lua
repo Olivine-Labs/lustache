@@ -161,7 +161,7 @@ describe("rendering", function()
   end)
 
   it("ArrayOfTablesFunctionTest", function()
-    template = "{{#beatles}}* {{name}}\n{{/beatles}}"
+    template = "{{#beatles}}\n* {{name}}\n{{/beatles}}"
     data = {
       beatles = {
         { first_name = "John", last_name = "Lennon" },
