@@ -299,6 +299,17 @@ function renderer:parse(template, tags)
 
   -- Strips all whitespace tokens array for the current line if there was
   -- a {{#tag}} on it and otherwise only space
+  local function strip_space()
+    if has_tag and not non_space then
+      while #spaces > 0 do
+        table_remove(tokens, table_remove(spaces))
+      end
+    else
+      spaces = {}
+    end
+    has_tag = false
+    non_space = false
+  end
 
   local type, value, chr
 
@@ -312,13 +323,16 @@ function renderer:parse(template, tags)
         chr = string_sub(value,i,i)
 
         if string_find(chr, "%s+") then
-          spaces[#spaces+1] = #tokens
+          spaces[#spaces+1] = #tokens + 1
         else
           non_space = true
         end
 
         tokens[#tokens+1] = { type = "text", value = chr, startIndex = start, endIndex = start }
         start = start + 1
+        if chr == "\n" then
+          strip_space()
+        end
       end
     end
 
