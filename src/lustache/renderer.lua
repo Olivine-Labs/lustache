@@ -24,6 +24,11 @@ local html_escape_characters = {
   ["/"] = "&#x2F;"
 }
 
+local block_tags = {
+  ["#"] = true,
+  ["^"] = true,
+}
+
 local function is_array(array)
   if type(array) ~= "table" then return false end
   local max, n = 0, 0
@@ -89,7 +94,7 @@ local function nest_tokens(tokens)
   local token, section
 
   for i,token in ipairs(tokens) do
-    if token.type == "#" or token.type == "^" then
+    if block_tags[token.type] then
       token.tokens = {}
       sections[#sections+1] = token
       collector[#collector+1] = token
