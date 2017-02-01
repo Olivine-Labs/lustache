@@ -12,7 +12,7 @@ local patterns = {
   nonSpace = "%S",
   eq = "%s*=",
   curly = "%s*}",
-  tag = "[#\\^/>{&=!]"
+  tag = "[#\\^/>{&=!*]"
 }
 
 local html_escape_characters = {
@@ -27,6 +27,7 @@ local html_escape_characters = {
 local block_tags = {
   ["#"] = true,
   ["^"] = true,
+  ["*"] = true,
 }
 
 local function is_array(array)
@@ -40,6 +41,18 @@ local function is_array(array)
     n = n + 1
   end
   return n == max
+end
+
+local function is_map(map)
+  if type(map) ~= "table" then
+    return false
+  end
+  for k, _ in pairs(map) do
+    if type(k) == "number" then
+      return false
+    end
+  end
+  return true
 end
 
 -- Low-level function that compiles the given `tokens` into a
@@ -63,6 +76,9 @@ local function compile_tokens(tokens, originalTemplate)
     for i, token in ipairs(tokens) do
       local t = token.type
       buf[#buf+1] = 
+        t == "*" and rnd:_iterate(
+          token, ctx, subrender(i, token.tokens)
+        ) or
         t == "#" and rnd:_section(
           token, ctx, subrender(i, token.tokens), originalTemplate
         ) or
@@ -206,6 +222,41 @@ function renderer:render(template, view, partials)
   end
 
   return fn(view)
+end
+
+function renderer:_iterate(token, context, callback)
+  local value = context:lookup(token.value)
+
+  if type(value) == "table" then
+    local sub_type
+    if is_array(value) then
+      sub_type = "array"
+    elseif is_map(value) then
+      sub_type = "map"
+    end
+
+    if sub_type == "array" then
+      local buffer = ""
+
+      for i,v in ipairs(value) do
+        buffer = buffer .. callback(context:push(v), self)
+      end
+
+      return buffer
+    elseif sub_type == "map" then
+      local buffer = ""
+
+      for k,v in pairs(value) do
+        buffer = buffer .. callback(context:push({k = k, v = v}), self)
+      end
+
+      return buffer
+    end
+
+    return error("Can only iterate over arrays and maps, got neither:" .. token.value)
+  end
+
+  return error("Can only iterate over pure arrays and maps (tables), got " .. type(value) .. ":" .. token.value)
 end
 
 function renderer:_section(token, context, callback, originalTemplate)
