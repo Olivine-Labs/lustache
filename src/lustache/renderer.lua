@@ -2,7 +2,7 @@ local Scanner  = require "lustache.scanner"
 local Context  = require "lustache.context"
 
 local error, ipairs, loadstring, pairs, setmetatable, tostring, type = 
-      error, ipairs, loadstring, pairs, setmetatable, tostring, type 
+      error, ipairs, loadstring or load, pairs, setmetatable, tostring, type 
 local math_floor, math_max, string_find, string_gsub, string_split, string_sub, table_concat, table_insert, table_remove =
       math.floor, math.max, string.find, string.gsub, string.split, string.sub, table.concat, table.insert, table.remove
 
