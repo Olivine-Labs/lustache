@@ -378,7 +378,7 @@ function renderer:parse(template, tags)
     end
 
     if not scanner:scan(tag_patterns[2]) then
-      error("Unclosed tag at " .. scanner.pos)
+      error("Unclosed tag " .. value .. " of type " .. type .. " at position " .. scanner.pos)
     end
 
     tokens[#tokens+1] = { type = type, value = value, startIndex = start, endIndex = scanner.pos - 1 }
