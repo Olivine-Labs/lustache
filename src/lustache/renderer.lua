@@ -12,7 +12,7 @@ local patterns = {
   nonSpace = "%S",
   eq = "%s*=",
   curly = "%s*}",
-  tag = "[#\\^/>{&=!]"
+  tag = "[#\\^/>{&=!?]"
 }
 
 local html_escape_characters = {
@@ -22,6 +22,12 @@ local html_escape_characters = {
   ['"'] = "&quot;",
   ["'"] = "&#39;",
   ["/"] = "&#x2F;"
+}
+
+local block_tags = {
+  ["#"] = true,
+  ["^"] = true,
+  ["?"] = true,
 }
 
 local function is_array(array)
@@ -58,6 +64,9 @@ local function compile_tokens(tokens, originalTemplate)
     for i, token in ipairs(tokens) do
       local t = token.type
       buf[#buf+1] = 
+        t == "?" and rnd:_conditional(
+          token, ctx, subrender(i, token.tokens)
+        ) or
         t == "#" and rnd:_section(
           token, ctx, subrender(i, token.tokens), originalTemplate
         ) or
@@ -89,7 +98,7 @@ local function nest_tokens(tokens)
   local token, section
 
   for i,token in ipairs(tokens) do
-    if token.type == "#" or token.type == "^" then
+    if block_tags[token.type] then
       token.tokens = {}
       sections[#sections+1] = token
       collector[#collector+1] = token
@@ -201,6 +210,16 @@ function renderer:render(template, view, partials)
   end
 
   return fn(view)
+end
+
+function renderer:_conditional(token, context, callback)
+  local value = context:lookup(token.value)
+
+  if value then
+    return callback(context, self)
+  end
+
+  return ""
 end
 
 function renderer:_section(token, context, callback, originalTemplate)
