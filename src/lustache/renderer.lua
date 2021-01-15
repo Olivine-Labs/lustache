@@ -3,8 +3,8 @@ local Context  = require "lustache.context"
 
 local error, ipairs, loadstring, pairs, setmetatable, tostring, type = 
       error, ipairs, loadstring, pairs, setmetatable, tostring, type 
-local math_floor, math_max, string_find, string_gsub, string_split, string_sub, table_concat, table_insert, table_remove =
-      math.floor, math.max, string.find, string.gsub, string.split, string.sub, table.concat, table.insert, table.remove
+local math_floor, math_max, string_find, string_gsub, string_split, string_sub, string_rep, table_concat, table_insert, table_remove =
+      math.floor, math.max, string.find, string.gsub, string.split, string.sub, string.rep, table.concat, table.insert, table.remove
 
 local patterns = {
   white = "%s*",
@@ -73,7 +73,7 @@ local function compile_tokens(tokens, originalTemplate)
         t == "^" and rnd:_inverted(
           token.value, ctx, subrender(i, token.tokens)
         ) or
-        t == ">" and rnd:_partial(token.value, ctx, originalTemplate) or
+        t == ">" and rnd:_partial(token.value, ctx, originalTemplate, token.startIndex) or
         (t == "{" or t == "&") and rnd:_name(token.value, ctx, false) or
         t == "name" and rnd:_name(token.value, ctx, true) or
         t == "text" and token.value or ""
@@ -268,7 +268,7 @@ function renderer:_inverted(name, context, callback)
   return ""
 end
 
-function renderer:_partial(name, context, originalTemplate)
+function renderer:_partial(name, context, originalTemplate, startIndex)
   local fn = self.partial_cache[name]
 
   -- check if partial cache exists
@@ -283,7 +283,23 @@ function renderer:_partial(name, context, originalTemplate)
     fn = self:compile(partial, nil, originalTemplate)
     self.partial_cache[name] = fn
   end
-  return fn and fn(context, self) or ""
+
+  local startOfLineIndex = 1
+  for i = startIndex, 1, -1 do
+    if string_sub(originalTemplate, i, i) == "\n" then
+      startOfLineIndex = i + 1
+      break
+    end
+  end
+  local indent = string_rep(" ", startIndex - startOfLineIndex)
+
+  local str = fn and fn(context, self) or ""
+  local buf = {}
+  for i,line in ipairs(string_split(str, "\n")) do
+    buf[#buf+1] = indent .. line .. "\n"
+  end
+
+  return table_concat(buf)
 end
 
 function renderer:_name(name, context, escape)
