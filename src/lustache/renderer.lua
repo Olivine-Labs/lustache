@@ -280,7 +280,7 @@ function renderer:_partial(name, context, originalTemplate)
     end
     
     -- compile partial and store result in cache
-    fn = self:compile(partial, nil, originalTemplate)
+    fn = self:compile(partial, nil, partial)
     self.partial_cache[name] = fn
   end
   return fn and fn(context, self) or ""
