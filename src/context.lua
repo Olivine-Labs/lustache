@@ -1,7 +1,7 @@
 local string_find, string_split, tostring, type =
       string.find, string.split, tostring, type
 
-local context = {}
+Context = {}
 context.__index = context
 
 function context:clear_cache()
