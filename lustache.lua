@@ -1,5 +1,6 @@
 -- lustache: Lua mustache template parsing.
 -- Copyright 2013 Olivine Labs, LLC <projects@olivinelabs.com>
+-- FiveM edit by Raag2005
 -- MIT Licensed.
 
 local string_gmatch = string.gmatch
@@ -10,10 +11,10 @@ function string.split(str, sep)
   return out
 end
 
-local lustache = {
+lustache = {
   name     = "lustache",
   version  = "1.3.1-0",
-  renderer = require("lustache.renderer"):new(),
+  renderer = Renderer:new(),
 }
 
 return setmetatable(lustache, {

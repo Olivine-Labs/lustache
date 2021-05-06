@@ -1,16 +1,16 @@
 local string_find, string_match, string_sub =
       string.find, string.match, string.sub
 
-local scanner = {}
+Scanner = {}
 
 -- Returns `true` if the tail is empty (end of string).
-function scanner:eos()
+function Scanner:eos()
   return self.tail == ""
 end
 
 -- Tries to match the given regular expression at the current position.
 -- Returns the matched text if it can match, `null` otherwise.
-function scanner:scan(pattern)
+function Scanner:scan(pattern)
   local match = string_match(self.tail, pattern)
 
   if match and string_find(self.tail, pattern) == 1 then
@@ -25,7 +25,7 @@ end
 -- Skips all text until the given regular expression can be matched. Returns
 -- the skipped string, which is the entire tail of this scanner if no match
 -- can be made.
-function scanner:scan_until(pattern)
+function Scanner:scan_until(pattern)
 
   local match
   local pos = string_find(self.tail, pattern)
@@ -45,7 +45,7 @@ function scanner:scan_until(pattern)
   return match
 end
 
-function scanner:new(str)
+function Scanner:new(str)
   local out = {
     str  = str,
     tail = str,
@@ -54,4 +54,4 @@ function scanner:new(str)
   return setmetatable(out, { __index = self } )
 end
 
-return scanner
+return Scanner

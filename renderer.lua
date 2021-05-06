@@ -1,5 +1,5 @@
-local Scanner  = require "lustache.scanner"
-local Context  = require "lustache.context"
+-- local Scanner  = require "lustache.scanner"
+-- local Context  = require "lustache.context"
 
 local error, ipairs, pairs, setmetatable, tostring, type = 
       error, ipairs, pairs, setmetatable, tostring, type 
@@ -167,14 +167,14 @@ local function make_context(view)
   return getmetatable(view) == Context and view or Context:new(view)
 end
 
-local renderer = { }
+Renderer = { }
 
-function renderer:clear_cache()
+function Renderer:clear_cache()
   self.cache = {}
   self.partial_cache = {}
 end
 
-function renderer:compile(tokens, tags, originalTemplate)
+function Renderer:compile(tokens, tags, originalTemplate)
   tags = tags or self.tags
   if type(tokens) == "string" then
     tokens = self:parse(tokens, tags)
@@ -187,7 +187,7 @@ function renderer:compile(tokens, tags, originalTemplate)
   end
 end
 
-function renderer:render(template, view, partials)
+function Renderer:render(template, view, partials)
   if type(self) == "string" then
     error("Call mustache:render, not mustache.render!")
   end
@@ -212,7 +212,7 @@ function renderer:render(template, view, partials)
   return fn(view)
 end
 
-function renderer:_conditional(token, context, callback)
+function Renderer:_conditional(token, context, callback)
   local value = context:lookup(token.value)
 
   if value then
@@ -222,7 +222,7 @@ function renderer:_conditional(token, context, callback)
   return ""
 end
 
-function renderer:_section(token, context, callback, originalTemplate)
+function Renderer:_section(token, context, callback, originalTemplate)
   local value = context:lookup(token.value)
 
   if type(value) == "table" then
@@ -254,7 +254,7 @@ function renderer:_section(token, context, callback, originalTemplate)
   return ""
 end
 
-function renderer:_inverted(name, context, callback)
+function Renderer:_inverted(name, context, callback)
   local value = context:lookup(name)
 
   -- From the spec: inverted sections may render text once based on the
@@ -268,7 +268,7 @@ function renderer:_inverted(name, context, callback)
   return ""
 end
 
-function renderer:_partial(name, context, originalTemplate)
+function Renderer:_partial(name, context, originalTemplate)
   local fn = self.partial_cache[name]
 
   -- check if partial cache exists
@@ -286,7 +286,7 @@ function renderer:_partial(name, context, originalTemplate)
   return fn and fn(context, self) or ""
 end
 
-function renderer:_name(name, context, escape)
+function Renderer:_name(name, context, escape)
   local value = context:lookup(name)
 
   if type(value) == "function" then
@@ -307,7 +307,7 @@ end
 -- `tags` is given here it must be an array with two string values: the
 -- opening and closing tags used in the template (e.g. ["<%", "%>"]). Of
 -- course, the default is to use mustaches (i.e. Mustache.tags).
-function renderer:parse(template, tags)
+function Renderer:parse(template, tags)
   tags = tags or self.tags
   local tag_patterns = escape_tags(tags)
   local scanner = Scanner:new(template)
@@ -395,7 +395,7 @@ function renderer:parse(template, tags)
   return nest_tokens(squash_tokens(tokens))
 end
 
-function renderer:new()
+function Renderer:new()
   local out = { 
     cache         = {},
     partial_cache = {},
@@ -404,4 +404,4 @@ function renderer:new()
   return setmetatable(out, { __index = self })
 end
 
-return renderer
+return Renderer
