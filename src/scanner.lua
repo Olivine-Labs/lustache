@@ -1,7 +1,7 @@
 local string_find, string_match, string_sub =
       string.find, string.match, string.sub
 
-local scanner = {}
+Scanner = {}
 
 -- Returns `true` if the tail is empty (end of string).
 function scanner:eos()
