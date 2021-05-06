@@ -10,7 +10,7 @@ function string.split(str, sep)
   return out
 end
 
-local lustache = {
+lustache = {
   name     = "lustache",
   version  = "1.3.1-0",
   renderer = require("lustache.renderer"):new(),
