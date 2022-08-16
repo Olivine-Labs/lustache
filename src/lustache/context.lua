@@ -40,7 +40,7 @@ function context:lookup(name)
           value = context.view[name]
         end
 
-        if value then
+        if value ~= nil then
           break
         end
 
